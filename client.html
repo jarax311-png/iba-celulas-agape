@@ -1,0 +1,3296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Células Rede Agape</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --primary-dark: #2E7D32;
+            --secondary: #2196F3;
+            --bg: #F5F7FA;
+            --text: #333;
+            --text-light: #777;
+            --white: #fff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --gradient: linear-gradient(135deg, #66BB6A 0%, #43A047 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 80px;
+        }
+
+        /* HEADER */
+        header {
+            background: var(--white);
+            padding: 15px 20px;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* VIEWS */
+        .view {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .welcome-card {
+            background: var(--gradient);
+            color: var(--white);
+            border-radius: 20px;
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 25px;
+        }
+
+        .welcome-card h2 {
+            margin: 0 0 5px;
+            font-size: 24px;
+        }
+
+        .welcome-card p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        /* GRID ACTIONS */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .action-btn {
+            background: var(--gradient);
+            padding: 20px 15px;
+            border-radius: 16px;
+            color: white;
+            text-align: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .action-btn i {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .action-btn span {
+            font-weight: 600;
+            font-size: 11px;
+            /* Diminuído de 14px */
+        }
+
+        .action-btn.secondary {
+            background: linear-gradient(135deg, #448AFF 0%, #2979FF 100%);
+        }
+
+        /* EVENT LIST */
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text);
+            padding-left: 5px;
+        }
+
+        .event-item {
+            display: flex;
+            align-items: center;
+            background: var(--white);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        .event-date {
+            padding-right: 15px;
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .event-date b {
+            display: block;
+            font-size: 18px;
+            color: var(--primary-dark);
+        }
+
+        .event-date span {
+            font-size: 12px;
+            color: var(--text-light);
+            text-transform: uppercase;
+        }
+
+        .event-info h3 {
+            margin: 0 0 4px;
+            font-size: 15px;
+        }
+
+        .event-info p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* FORMS */
+        input,
+        select {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-primary.secondary {
+            background: white;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-dark);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .switch-auth {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-wrapper input {
+            width: auto;
+            margin: 0;
+        }
+
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #aaa;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 5px;
+            flex: 1;
+        }
+
+        .nav-item.active {
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            background: currentColor;
+            margin: 0 auto 4px;
+            -webkit-mask-size: cover;
+            mask-size: cover;
+            display: block;
+        }
+
+        /* Icons (Premium Modern Style - Rounded & Clean) */
+        .icon-home {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'%3E%3C/path%3E%3Cpolyline points='9 22 9 12 15 12 15 22'%3E%3C/polyline%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'%3E%3C/path%3E%3Cpolyline points='9 22 9 12 15 12 15 22'%3E%3C/polyline%3E%3C/svg%3E");
+        }
+
+        .icon-users {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='9' cy='7' r='4'%3E%3C/circle%3E%3Cpath d='M23 21v-2a4 4 0 0 0-3-3.87'%3E%3C/path%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'%3E%3C/path%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='9' cy='7' r='4'%3E%3C/circle%3E%3Cpath d='M23 21v-2a4 4 0 0 0-3-3.87'%3E%3C/path%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'%3E%3C/path%3E%3C/svg%3E");
+        }
+
+        .icon-calendar {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+        }
+
+        .icon-user {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E");
+        }
+
+        .icon-settings {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'%3E%3C/circle%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'%3E%3C/path%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'%3E%3C/circle%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'%3E%3C/path%3E%3C/svg%3E");
+        }
+
+        /* STORIES */
+        .stories-container {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            scrollbar-width: none;
+        }
+
+        .stories-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+        }
+
+        .story-ring {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            margin-bottom: 5px;
+        }
+
+        .story-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid white;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .story-text {
+            font-size: 11px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 70px;
+        }
+
+        /* FEED POST */
+        .feed-post {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .post-header {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .post-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #eee;
+        }
+
+        .post-img {
+            width: 100%;
+            height: 300px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+
+        .post-actions {
+            padding: 8px 15px 12px;
+            display: flex;
+            gap: 16px;
+            border-top: none;
+        }
+
+        .feed-btn {
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #262626;
+            transition: transform 0.1s;
+        }
+
+        .feed-btn:active {
+            transform: scale(0.9);
+        }
+
+        .feed-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+        }
+
+        .post-content {
+            padding: 0 15px 15px;
+        }
+
+        /* New Admin Icons */
+        .icon-plus-square {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='12' y1='8' x2='12' y2='16'%3E%3C/line%3E%3Cline x1='8' y1='12' x2='16' y2='12'%3E%3C/line%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='12' y1='8' x2='12' y2='16'%3E%3C/line%3E%3Cline x1='8' y1='12' x2='16' y2='12'%3E%3C/line%3E%3C/svg%3E");
+        }
+
+        .icon-user-x {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='8.5' cy='7' r='4'%3E%3C/circle%3E%3Cline x1='18' y1='8' x2='23' y2='13'%3E%3C/line%3E%3Cline x1='23' y1='8' x2='18' y2='13'%3E%3C/line%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='8.5' cy='7' r='4'%3E%3C/circle%3E%3Cline x1='18' y1='8' x2='23' y2='13'%3E%3C/line%3E%3Cline x1='23' y1='8' x2='18' y2='13'%3E%3C/line%3E%3C/svg%3E");
+        }
+
+        .icon-list {
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='8' y1='6' x2='21' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='12' x2='21' y2='12'%3E%3C/line%3E%3Cline x1='8' y1='18' x2='21' y2='18'%3E%3C/line%3E%3Cline x1='3' y1='6' x2='3.01' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='12' x2='3.01' y2='12'%3E%3C/line%3E%3Cline x1='3' y1='18' x2='3.01' y2='18'%3E%3C/line%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='8' y1='6' x2='21' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='12' x2='21' y2='12'%3E%3C/line%3E%3Cline x1='8' y1='18' x2='21' y2='18'%3E%3C/line%3E%3Cline x1='3' y1='6' x2='3.01' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='12' x2='3.01' y2='12'%3E%3C/line%3E%3Cline x1='3' y1='18' x2='3.01' y2='18'%3E%3C/line%3E%3C/svg%3E");
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            border-radius: 16px;
+            z-index: 1;
+        }
+
+        .map-container {
+            height: calc(100vh - 200px);
+            /* Ajuste conforme header/nav */
+            min-height: 400px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* PREMIUM BUTTONS STYLE */
+        .premium-btn {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            border-radius: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            background: white;
+        }
+
+        .premium-btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-right: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .btn-desc {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .btn-arrow {
+            color: #ccc;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* STORIES STYLE */
+        .stories-container {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            scrollbar-width: none;
+        }
+
+        /* GLOBAL RESPONSIVENESS */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        /* Hide scrollbar Firefox */
+
+        .stories-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide Chrome */
+
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+            cursor: pointer;
+        }
+
+        .story-ring {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            margin-bottom: 5px;
+        }
+
+        .story-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid white;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .story-name {
+            font-size: 11px;
+            text-align: center;
+            color: #333;
+            width: 70px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* TABS STYLE */
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #999;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            background: #f9fff9;
+        }
+
+        .cell-tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .cell-tab-content.active {
+            display: block;
+        }
+
+        /* CARD HEADER ESTILO INSTAGRAM/FACEBOOK */
+        .aviso-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary);
+        }
+
+        .aviso-title {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+
+        .aviso-msg {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .aviso-meta {
+            font-size: 11px;
+            color: #999;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .pedido-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .tag-resolvido {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* FAB BUTTON FOR LEADER */
+        .fab {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 90;
+            transition: transform 0.2s;
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        /* EVENT CARD STYLE */
+        .event-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .event-img {
+            width: 100%;
+            height: auto;
+            /* Altura automática para não cortar */
+            max-height: 500px;
+            /* Limite para não ficar gigante */
+            object-fit: contain;
+            /* Garante que a imagem inteira apareça */
+            background: #f8f8f8;
+            display: block;
+            /* Remove espaço extra em baixo */
+        }
+
+        .event-content {
+            padding: 12px;
+        }
+
+        .event-date {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .event-title {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #262626;
+        }
+
+        .event-desc {
+            color: #262626;
+            margin-bottom: 8px;
+            font-size: 13px;
+            /* Fonte menor estilo legenda */
+            line-height: 1.4;
+        }
+
+        .event-loc {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* SCHOOLS CARD STYLE */
+        /* SCHOOLS BUTTON STYLE */
+        .school-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 50px;
+            /* Arredondado estilo botão */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            /* Sombra suave */
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #eee;
+        }
+
+        .school-btn:active {
+            transform: scale(0.97);
+        }
+
+        .school-btn h3 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--primary);
+        }
+
+        .school-btn .arrow {
+            font-size: 20px;
+            color: #ccc;
+        }
+
+        /* MODERN FLOATING MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        /* INSTAGRAM-STYLE COMMENTS SHEET */
+        .sheet-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 4000;
+        }
+
+        .sheet-modal {
+            position: fixed;
+            bottom: -100%;
+            /* Hidden by default */
+            left: 0;
+            width: 100%;
+            height: 75vh;
+            background: #fff;
+            z-index: 4001;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.1);
+            transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sheet-modal.active {
+            bottom: 0;
+        }
+
+        .sheet-header {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+
+        .sheet-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #262626;
+        }
+
+        .sheet-drag-handle {
+            width: 40px;
+            height: 4px;
+            background: #dbdbdb;
+            border-radius: 2px;
+            margin: 0 auto 15px;
+        }
+
+        .sheet-close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            color: #262626;
+        }
+
+        .sheet-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .sheet-footer {
+            padding: 10px 15px;
+            border-top: 1px solid #eee;
+            background: #fff;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+        }
+
+        .comment-bar-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #dbdbdb;
+            border-radius: 25px;
+            padding: 8px 15px;
+        }
+
+        .comment-bar-box input {
+            border: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .comment-bar-box input:focus {
+            border: none;
+        }
+
+        .comment-bar-box button {
+            background: none;
+            border: none;
+            color: #0095f6;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        /* COMMENT ITEM */
+        .comment-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #eee;
+        }
+
+        .comment-text-block {
+            flex: 1;
+            font-size: 14px;
+            line-height: 1.4;
+            color: #262626;
+        }
+
+        .comment-text-block b {
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .comment-meta {
+            font-size: 12px;
+            color: #8e8e8e;
+            margin-top: 4px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 380px;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+            transform: translateY(10px);
+            animation: slideUp 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .btn-close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #f0f0f0;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MODAL GENERICA -->
+    <div id="genericModal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <button class="btn-close-modal" onclick="closeModal()">&times;</button>
+            <h2 id="modalTitle" style="margin-top:0; color:var(--primary);">...</h2>
+            <div id="modalContent"></div>
+            <button class="btn-primary" style="margin-top:20px;" onclick="closeModal()">Fechar</button>
+        </div>
+    </div>
+
+
+
+    <!-- AUTH SECTION -->
+    <div id="authSection" class="view active">
+        <div style="padding: 40px 20px; text-align: center;">
+            <!-- LOGO APP -->
+            <img src="imagens/logo.png" alt="Células Rede Agape"
+                style="width: 150px; height: auto; margin-bottom: 20px; mix-blend-mode: multiply;">
+            <h2 style="margin-bottom: 30px;">Bem-vindo</h2>
+
+            <div id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Seu Email">
+                <input type="password" id="loginSenha" placeholder="Sua Senha">
+                <button class="btn-primary" onclick="fazerLogin()">Entrar</button>
+                <div class="switch-auth" onclick="toggleAuth()">Não tem conta? <b>Cadastre-se</b></div>
+            </div>
+
+            <div id="registerForm" style="display: none;">
+                <input type="text" id="regNome" placeholder="Seu Nome Completo">
+                <input type="email" id="regEmail" placeholder="Seu Email">
+                <input type="password" id="regSenha" placeholder="Crie uma Senha">
+                <input type="tel" id="regTel" placeholder="Telefone (WhatsApp)">
+
+                <!-- Endereço Inteligente Cadastro -->
+                <div style="background:#f9f9f9; padding:10px; border-radius:10px; margin-bottom:15px;">
+                    <h4 style="margin:0 0 10px; font-size:14px; color:#666;">Seu Endereço</h4>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="regCep" placeholder="CEP" onblur="buscarCep('reg')" maxlength="9"
+                            style="flex:1;">
+                        <button class="btn-primary" style="width:auto; padding:0 15px; margin-bottom:15px;"
+                            onclick="buscarCep('reg')">🔍</button>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="regEnd" placeholder="Rua" style="flex:2;">
+                        <input type="text" id="regNum" placeholder="Nº" style="flex:1;">
+                    </div>
+                    <input type="text" id="regBairro" placeholder="Bairro">
+                    <div style="display:flex; gap:10px;">
+                        <select id="regEstado" onchange="carregarCidades('reg')" style="flex:1;">
+                            <option value="">UF</option>
+                        </select>
+                        <select id="regCidade" style="flex:2;">
+                            <option value="">Cidade</option>
+                        </select>
+                    </div>
+                </div>
+
+                <select id="regCelula"
+                    style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; background:white;">
+                    <option value="">Selecione sua Célula</option>
+                </select>
+                <input type="text" id="regCodigoVip" placeholder="Código de Honra (Ex: LIDER12)"
+                    style="display:block; width:100%; margin-bottom:10px; padding:12px; border:1px solid #ddd; border-radius:8px;">
+                <div class="checkbox-wrapper" style="justify-content: center;">
+                    <label style="font-size: 14px; color: #555;">Data de Nascimento:</label>
+                </div>
+                <input type="date" id="regNasc">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="regEncontro">
+                    <label for="regEncontro">Já fiz o <b>Encontro com Deus</b></label>
+                </div>
+                <button class="btn-primary" onclick="registrar()">Criar Conta</button>
+                <div class="switch-auth" onclick="toggleAuth()">Já tem conta? <b>Faça Login</b></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP AREA (Hidden until login) -->
+    <div id="appContainer" style="display: none;">
+
+        <!-- HOME VIEW (FEED) -->
+        <div id="homeView" class="view active">
+            <!-- HEADER HOME -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div>
+                    <h2 style="margin:0; font-size:24px;">Olá, <span id="userNameDisplay">...</span>!</h2>
+                    <p style="margin:0; color:#666; font-size:14px;">Bem-vindo à sua igreja.</p>
+                </div>
+                <div onclick="openLeaderMessages()" style="padding:8px; cursor:pointer;">
+                    <svg aria-label="Mensagens" color="rgb(38, 38, 38)" fill="rgb(38, 38, 38)" height="26" role="img"
+                        viewBox="0 0 24 24" width="26">
+                        <path
+                            d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6M22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6M22 6L12 13L2 6"
+                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                            fill="none"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- STORIES -->
+            <div id="storiesContainer" class="stories-container">
+                <!-- Injetado via JS -->
+            </div>
+
+            <!-- FEED DE EVENTOS -->
+
+            <!-- FEED DE EVENTOS -->
+            <!-- FEED DE EVENTOS -->
+            <div id="feedEventos" style="margin-top: 10px;">
+                <p style="text-align:center; color:#999; margin-top:20px;">Carregando eventos...</p>
+            </div>
+        </div>
+
+        <!-- CELULA VIEW -->
+        <div id="celulaView" class="view">
+            <div class="section-title">Minha Célula</div>
+            <!-- HEADER DA CÉLULA -->
+            <div class="card"
+                style="text-align:center; padding: 25px 20px; background: linear-gradient(to bottom, #fff, #f8fcf8);">
+                <div
+                    style="width:60px; height:60px; background:var(--primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-size:24px;">
+                    🏛️</div>
+                <h2 id="celulaNomeDisplay" style="margin:0 0 5px 0; color:#333;">Carregando...</h2>
+                <div id="celulaRedeBadge"
+                    style="display:inline-block; background:#e3f2fd; color:#1565c0; font-size:11px; padding:2px 8px; border-radius:12px; font-weight:600; margin-bottom:10px; opacity:0;">
+                    ...</div>
+                <div id="celulaGeracaoBadge"
+                    style="display:inline-block; background:#f3e5f5; color:#7b1fa2; font-size:11px; padding:2px 8px; border-radius:12px; font-weight:600; margin-bottom:10px; margin-left:5px; opacity:0;">
+                    ...</div>
+                <p style="color:#666; font-size:14px; margin:0;" id="celulaLiderDisplay">Líder: ...</p>
+
+                <div
+                    style="display:flex; justify-content:center; gap:15px; margin-top:20px; font-size:13px; color:#555; background:white; padding:10px; border-radius:8px; border:1px solid #eee;">
+                    <div style="display:flex; align-items:center; gap:5px;">📅 <span id="celulaDiaDisplay">Terça</span>
+                        • <span id="celulaHoraDisplay">20h</span></div>
+                    <div style="height:15px; width:1px; background:#ddd;"></div>
+                    <div style="display:flex; align-items:center; gap:5px;">📍 <span id="celulaLocalDisplay">...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL DO LIDER (Só aparece se Lider) -->
+            <div id="painelLiderBtn" style="display:none; margin-bottom:15px;">
+                <button class="btn-primary"
+                    style="background:#2c3e50; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px;"
+                    onclick="abrirPainelLider()">
+                    <span>👑</span> Painel de Gestão do Líder
+                </button>
+            </div>
+
+            <!-- ABAS -->
+            <div class="tabs">
+                <div class="tab active" onclick="switchCellTab('mural')" id="tab-btn-mural">Mural</div>
+                <div class="tab" onclick="switchCellTab('pedidos')" id="tab-btn-pedidos">Pedidos</div>
+                <div class="tab" onclick="switchCellTab('testemunhos')" id="tab-btn-testemunhos">Testemunhos</div>
+                <div class="tab" onclick="switchCellTab('membros')" id="tab-btn-membros">Membros</div>
+            </div>
+
+            <!-- CONTEUDO: MURAL -->
+            <div id="tabMural" class="cell-tab-content active">
+                <div id="listaAvisos">
+                    <p style="text-align:center; color:#999; padding:20px;">Carregando avisos...</p>
+                </div>
+            </div>
+
+            <!-- CONTEUDO: PEDIDOS -->
+            <div id="tabPedidos" class="cell-tab-content">
+                <div class="card" style="margin-bottom:15px;">
+                    <textarea id="novoPedidoTexto" rows="3" placeholder="Faça seu pedido de oração..."
+                        style="width:100%; border:1px solid #ddd; padding:10px; border-radius:8px; resize:none; font-family:inherit;"></textarea>
+                    <button class="btn-primary" style="margin-top:10px; font-size:13px;" onclick="enviarPedido()">🙏
+                        Enviar Pedido</button>
+                </div>
+                <div id="listaPedidos"></div>
+            </div>
+
+            <!-- CONTEUDO: TESTEMUNHOS -->
+            <div id="tabTestemunhos" class="cell-tab-content">
+                <div class="card" style="margin-bottom:15px;">
+                    <textarea id="novoTestemunhoTexto" rows="3" placeholder="Compartilhe uma benção..."
+                        style="width:100%; border:1px solid #ddd; padding:10px; border-radius:8px; resize:none; font-family:inherit;"></textarea>
+                    <button class="btn-primary" style="margin-top:10px; font-size:13px; background:var(--secondary);"
+                        onclick="enviarTestemunho()">✨ Contar Testemunho</button>
+                </div>
+                <div id="listaTestemunhos"></div>
+            </div>
+
+            <!-- CONTEUDO: MEMBROS -->
+            <div id="tabMembros" class="cell-tab-content">
+                <div id="membrosList" class="card" style="padding: 0;">
+                    <!-- Lista de membros -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ESCOLAS VIEW -->
+        <div id="escolasView" class="view">
+            <div class="section-title">Escolas & Cursos</div>
+            <div id="listaEscolasCompleta" class="card" style="padding:10px;">
+                <p style="text-align:center; color:#999; padding:20px;">Carregando cursos...</p>
+            </div>
+        </div>
+
+        <!-- MAPA VIEW -->
+        <div id="mapaView" class="view">
+            <div class="section-title">Células Próximas</div>
+
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+
+            <div class="card">
+                <p style="text-align:center; margin:0; font-size:14px; color:#666;">
+                    Estamos buscando células perto de você...
+                </p>
+                <div style="text-align:center; margin-top:10px;">
+                    <button class="btn-primary" onclick="initMap()" style="padding: 10px; font-size:12px;">Atualizar
+                        Localização</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERFIL VIEW -->
+        <div id="perfilView" class="view">
+            <div class="card" style="text-align: center;">
+                <div style="width: 80px; height: 80px; margin: 0 auto 15px;">
+                    <img id="profileAvatarDisplay" src=""
+                        style="width:100%; height:100%; border-radius:50%; object-fit:cover; background:#eee;">
+                </div>
+                <h2 id="profileName">Nome do Usuário</h2>
+                <p id="profileEmail" style="color: #888;">email@teste.com</p>
+
+                <div style="text-align: left; margin-top: 20px;">
+                    <p><b>Fez Encontro com Deus:</b> <span id="profileEncontro">Não</span></p>
+                    <p><b>Data de Nascimento:</b> <span id="profileNasc">--/--/----</span></p>
+                </div>
+
+                <div class="actions-grid" style="margin-top: 20px;">
+                    <button class="btn-primary" onclick="navTo('celula')">Minha Célula</button>
+                    <button class="btn-primary" onclick="navTo('mapa')" style="background:var(--secondary);">Encontrar
+                        Célula</button>
+
+                </div>
+
+
+                <button class="btn-primary" style="background: #e0e0e0; color:#333; margin-top: 10px;"
+                    onclick="navTo('config')">Configurações</button>
+                <button class="btn-primary" style="background: #ff5252; margin-top: 10px;" onclick="sair()">Sair do
+                    App</button>
+            </div>
+        </div>
+
+        <!-- CONFIG VIEW -->
+        <div id="configView" class="view">
+            <div class="section-title">Configurações</div>
+
+            <!-- MENU PRINCIPAL -->
+            <!-- MENU PRINCIPAL PREMIUM (SEM ÍCONES) -->
+            <div id="confMenu" style="margin-top: 15px;">
+                <div class="card premium-btn" onclick="showConfSection('confPerfil')">
+                    <div class="btn-text">
+                        <span class="btn-title">Dados Pessoais</span>
+                        <span class="btn-desc">Editar foto, nome e bio</span>
+                    </div>
+                    <div class="btn-arrow">›</div>
+                </div>
+
+                <div class="card premium-btn" onclick="showConfSection('confSeguranca')">
+                    <div class="btn-text">
+                        <span class="btn-title">Segurança</span>
+                        <span class="btn-desc">Alterar sua senha</span>
+                    </div>
+                    <div class="btn-arrow">›</div>
+                </div>
+
+                <div class="card premium-btn" onclick="alert('Funcionalidade em desenvolvimento')">
+                    <div class="btn-text">
+                        <span class="btn-title">Ajuda e Suporte</span>
+                        <span class="btn-desc">Tire suas dúvidas</span>
+                    </div>
+                    <div class="btn-arrow">›</div>
+                </div>
+
+                <div class="card premium-btn" onclick="alert('Fale com seu líder para sair da célula.')"
+                    style="border: 1px solid #ffebee;">
+                    <div class="btn-text">
+                        <span class="btn-title" style="color: #d32f2f;">Sair da Célula</span>
+                        <span class="btn-desc">Área de risco</span>
+                    </div>
+                    <div class="btn-arrow" style="color: #d32f2f;">›</div>
+                </div>
+            </div>
+
+            <!-- SEÇÃO PERFIL (Escondida) -->
+            <div id="confPerfil" style="display: none;">
+                <button class="btn-primary secondary" style="margin-bottom: 15px; width: auto;"
+                    onclick="showConfSection('confMenu')">← Voltar</button>
+
+                <div class="card" style="text-align: center;">
+                    <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 15px;">
+                        <img id="confFotoPreview" src=""
+                            style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #eee;">
+                        <button onclick="document.getElementById('confFotoInput').click()"
+                            style="position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer;">📷</button>
+                        <input type="file" id="confFotoInput" style="display: none;" accept="image/*"
+                            onchange="uploadFoto()">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Dados Básicos</h3>
+                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Nome</label>
+                    <input type="text" id="confNome" placeholder="Seu Nome">
+
+                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Telefone</label>
+                    <input type="tel" id="confTel" placeholder="Seu Telefone">
+
+                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Biografia</label>
+                    <textarea id="confBio" rows="3" placeholder="Conte um pouco sobre você..."
+                        style="width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; resize: none; font-family: inherit; margin-bottom: 15px;"></textarea>
+
+                    <button class="btn-primary" onclick="salvarPerfil()">Salvar Alterações</button>
+                </div>
+            </div>
+
+            <!-- SEÇÃO SEGURANÇA (Escondida) -->
+            <div id="confSeguranca" style="display: none;">
+                <button class="btn-primary secondary" style="margin-bottom: 15px; width: auto;"
+                    onclick="showConfSection('confMenu')">← Voltar</button>
+                <div class="card">
+                    <h3>Trocar Senha</h3>
+                    <input type="password" id="confSenhaAtual" placeholder="Senha Atual">
+                    <input type="password" id="confNovaSenha" placeholder="Nova Senha">
+                    <button class="btn-primary" onclick="alterarSenha()">Trocar Senha</button>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- BOTTOM NAV -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('home')">
+                <div class="nav-icon icon-home"></div>
+                Home
+            </div>
+            <div class="nav-item" onclick="switchTab('celula')">
+                <div class="nav-icon icon-users"></div>
+                Célula
+            </div>
+            <div class="nav-item" onclick="switchTab('perfil')">
+                <div class="nav-icon icon-user"></div>
+                Perfil
+            </div>
+        </nav>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- COMMENTS BOTTOM SHEET -->
+    <div id="commentsModal" class="sheet-modal">
+        <div class="sheet-header">
+            <div class="sheet-drag-handle"></div>
+            <h3>Comentários</h3>
+            <button class="sheet-close" onclick="closeComments()">&times;</button>
+        </div>
+        <div class="sheet-content" id="commentsList">
+            <!-- Comentários injetados via JS -->
+        </div>
+        <div class="sheet-footer">
+            <div class="comment-bar-box">
+                <div class="user-avatar-small"></div>
+                <input type="text" placeholder="Adicione um comentário..." id="commentInput">
+                <button onclick="postComment()">Publicar</button>
+            </div>
+        </div>
+    </div>
+    <div id="sheetOverlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
+
+    <!-- PAINEL LIDER MODAL -->
+    <div id="painelLiderModal" class="sheet-modal">
+        <div class="sheet-header">
+            <div class="sheet-drag-handle"></div>
+            <h3>Painel do Líder</h3>
+            <button class="sheet-close" onclick="fecharPainelLider()">&times;</button>
+        </div>
+        <div class="sheet-content">
+            <div class="card">
+                <h4>📢 Novo Aviso / Post</h4>
+                <input type="text" id="novoAvisoTitulo" placeholder="Título"
+                    style="width:100%; margin-bottom:10px; padding:10px; border:1px solid #ddd; border-radius:8px;">
+                <textarea id="novoAvisoMsg" rows="4" placeholder="Mensagem do aviso..."
+                    style="width:100%; margin-bottom:10px; padding:10px; border:1px solid #ddd; border-radius:8px; resize:none;"></textarea>
+                <button class="btn-primary" onclick="postarAviso()">Publicar no Feed</button>
+            </div>
+
+            <div class="card" style="margin-top:15px;">
+                <h4>📸 Novo Story</h4>
+                <p style="color:#666; font-size:12px; margin-bottom:10px;">Stories aparecem no topo do app por 24h.</p>
+                <input type="file" id="leaderStoryFile" accept="image/*" style="margin-bottom:10px; font-size:12px;">
+                <input type="text" id="leaderStoryLegenda" placeholder="Legenda (Opcional)"
+                    style="width:100%; margin-bottom:10px; padding:8px; border:1px solid #ddd; border-radius:8px;">
+                <button class="btn-primary" onclick="postarStoryLeader()" style="background:var(--secondary);">Publicar
+                    Story</button>
+            </div>
+
+            <div class="card" id="leaderCellConfig" style="margin-top:15px; display:none;">
+                <h4>⚙️ Configurações da Célula</h4>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:12px; color:#666;">Dia da Reunião</label>
+                        <select id="leaderCellDia"
+                            style="width:100%; padding:8px; border:1px solid #ddd; border-radius:8px;">
+                            <option value="">Selecione</option>
+                            <option value="Segunda">Segunda-feira</option>
+                            <option value="Terça">Terça-feira</option>
+                            <option value="Quarta">Quarta-feira</option>
+                            <option value="Quinta">Quinta-feira</option>
+                            <option value="Sexta">Sexta-feira</option>
+                            <option value="Sábado">Sábado</option>
+                            <option value="Domingo">Domingo</option>
+                        </select>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:12px; color:#666;">Horário</label>
+                        <input type="time" id="leaderCellHora"
+                            style="width:100%; padding:8px; border:1px solid #ddd; border-radius:8px;">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="salvarConfiguracoesCelula()"
+                    style="background:var(--secondary);">Salvar Alterações</button>
+            </div>
+
+            <div class="card" style="margin-top:15px;">
+                <h4>⚙️ Gerenciar Meu Conteúdo</h4>
+                <button class="btn-primary secondary" onclick="abrirGestaoConteudo()">Ver Meus Posts / Stories</button>
+                <div id="listaMinhaGestao" style="margin-top:10px; max-height:300px; overflow-y:auto; display:none;">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:15px;">
+                <h4>👥 Gestão de Membros</h4>
+                <div id="gestaoMembrosContainer">
+                    <p style="color:#666; font-size:13px; margin-bottom:10px;">Gerencie os membros da sua célula/rede.
+                    </p>
+                    <button class="btn-primary secondary" onclick="carregarGestaoMembros()">Carregar Lista de
+                        Membros</button>
+                </div>
+                <div id="listaGestaoMembros" style="margin-top:10px; max-height:300px; overflow-y:auto; display:none;">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STORY VIEWER MODAL -->
+    <div id="storyViewer"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:5000; flex-direction:column;">
+        <!-- Progress Bar -->
+        <div style="padding:10px; display:flex; gap:5px;">
+            <div style="flex:1; height:3px; background:rgba(255,255,255,0.3); border-radius:3px; overflow:hidden;">
+                <div id="storyProgress" style="width:0%; height:100%; background:white; transition:width 0.1s linear;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Header (User Info + Close) -->
+        <div style="padding:10px 15px; display:flex; justify-content:space-between; align-items:center; color:white;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <img id="storyUserImg" src="" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+                <span id="storyUserName" style="font-weight:600; font-size:14px;"></span>
+                <span id="storyTime" style="color:rgba(255,255,255,0.7); font-size:12px;"></span>
+            </div>
+            <button onclick="fecharStory()"
+                style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">&times;</button>
+        </div>
+
+        <!-- Main Content -->
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; position:relative;">
+            <img id="storyMainImg" src="" style="max-width:100%; max-height:100%; object-fit:contain;">
+            <!-- Tap areas for nav (future) -->
+            <div style="position:absolute; left:0; top:0; bottom:0; width:30%;" onclick="/* prevStory() */"></div>
+            <div style="position:absolute; right:0; top:0; bottom:0; width:30%;" onclick="/* nextStory() */"></div>
+        </div>
+
+        <!-- Caption/Footer (Optional) -->
+        <div id="storyCaption"
+            style="padding:20px; color:white; text-align:center; font-size:16px; background:linear-gradient(transparent, rgba(0,0,0,0.8));">
+        </div>
+    </div>
+
+    <script>
+        // ... (previous scripts)
+        const IS_FILE = window.location.protocol === 'file:';
+        // Se for arquivo, usa localhost. Se for servidor (celular), usa caminho relativo /api
+        // Mas para garantir no celular (onde abrimos via IP:5000), o relativo '/api' funciona melhor.
+        // POREM, se abrir o arquivo direto no PC, precisa ser localhost.
+
+        const API_URL = IS_FILE ? 'http://localhost:5000/api' : '/api';
+        let currentUser = null;
+
+        // Tenta recuperar sessão salva
+        const savedSession = localStorage.getItem('user_session');
+        if (savedSession) {
+            try {
+                currentUser = JSON.parse(savedSession);
+            } catch (e) {
+                console.error("Erro ao restaurar sessão", e);
+                localStorage.removeItem('user_session');
+            }
+        }
+
+        // AUTH FUNCTIONS
+        function toggleAuth() {
+            const login = document.getElementById('loginForm');
+            const reg = document.getElementById('registerForm');
+            if (login.style.display === 'none') {
+                login.style.display = 'block';
+                reg.style.display = 'none';
+            } else {
+                login.style.display = 'none';
+                reg.style.display = 'block';
+                carregarCelulasCadastro();
+            }
+        }
+
+        async function carregarCelulasCadastro() {
+            const select = document.getElementById('regCelula');
+            // if (select.options.length > 1) return; // Força recarregar para garantir dados novos
+
+            try {
+                const [resCel, resRede, resGer] = await Promise.all([
+                    fetch(`${API_URL}/celulas`),
+                    fetch(`${API_URL}/redes`),
+                    fetch(`${API_URL}/geracoes`)
+                ]);
+
+                const celulas = await resCel.json();
+                const redes = resRede.ok ? await resRede.json() : [];
+                const geracoes = resGer.ok ? await resGer.json() : [];
+
+                select.innerHTML = '<option value="">Selecione sua Célula/Rede/Geração</option>';
+
+                // 1. Células
+                if (celulas.length > 0) {
+                    const grpCel = document.createElement('optgroup');
+                    grpCel.label = "Células";
+                    celulas.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = `cel_${c.id}`;
+                        let extra = c.rede ? ` - ${c.rede}` : '';
+                        if (c.geracao) extra += ` (${c.geracao})`;
+                        opt.textContent = `${c.nome}${extra} - Líder: ${c.lider || '?'}`;
+                        grpCel.appendChild(opt);
+                    });
+                    select.appendChild(grpCel);
+                }
+
+                // 2. Redes
+                if (redes.length > 0) {
+                    const grpRede = document.createElement('optgroup');
+                    grpRede.label = "Redes (Para Líderes de Rede)";
+                    redes.forEach(r => {
+                        const opt = document.createElement('option');
+                        opt.value = `rede_${r.id}`;
+                        opt.textContent = `${r.nome} - Líder: ${r.lider_nome || '?'}`;
+                        grpRede.appendChild(opt);
+                    });
+                    select.appendChild(grpRede);
+                }
+
+                // 3. Gerações
+                if (geracoes.length > 0) {
+                    const grpGer = document.createElement('optgroup');
+                    grpGer.label = "Gerações (Para Líderes de Geração)";
+                    geracoes.forEach(g => {
+                        const opt = document.createElement('option');
+                        opt.value = `ger_${g.id}`;
+                        opt.textContent = `${g.nome} - Líder: ${g.lider_nome || '?'}`;
+                        grpGer.appendChild(opt);
+                    });
+                    select.appendChild(grpGer);
+                }
+
+            } catch (e) {
+                console.error("Erro ao carregar opções de cadastro", e);
+                select.innerHTML = '<option value="">Erro ao carregar</option>';
+            }
+        }
+
+        async function fazerLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            try {
+                const res = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    currentUser = data.usuario; // Key is usuario in app.py logic
+                    localStorage.setItem('user_session', JSON.stringify(currentUser));
+
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('registerForm').style.display = 'none';
+                    iniciarApp();
+                } else {
+                    alert('Email ou senha incorretos!');
+                }
+            } catch (e) { alert('Erro ao conectar com servidor'); }
+        }
+
+        async function registrar() {
+            const nome = document.getElementById('regNome').value;
+            const email = document.getElementById('regEmail').value;
+            const senha = document.getElementById('regSenha').value;
+            const telefone = document.getElementById('regTel').value;
+
+            // Parse Selection (cel_X, rede_X, ger_X)
+            const selValue = document.getElementById('regCelula').value;
+            let celula_id = null;
+            let rede_id = null;
+            let geracao_id = null;
+
+            if (selValue.startsWith('cel_')) celula_id = selValue.replace('cel_', '');
+            if (selValue.startsWith('rede_')) rede_id = selValue.replace('rede_', '');
+            if (selValue.startsWith('ger_')) geracao_id = selValue.replace('ger_', '');
+
+            // Fallback for old behavior (if value is just number)
+            if (!celula_id && !rede_id && !geracao_id && selValue) {
+                celula_id = selValue;
+            }
+
+            const codigo_vip = document.getElementById('regCodigoVip').value;
+
+            const data_nascimento = document.getElementById('regNasc').value;
+            const fez_encontro = document.getElementById('regEncontro').checked;
+
+            // Address data
+            const cep = document.getElementById('regCep').value;
+            const endereco = document.getElementById('regEnd').value;
+            const numero = document.getElementById('regNum').value;
+            const bairro = document.getElementById('regBairro').value;
+            const cidade = document.getElementById('regCidade').value;
+            const estado = document.getElementById('regEstado').value;
+
+            if (!nome || !email || !senha) return alert("Preencha nome, email e senha!");
+
+            const payload = {
+                nome, email, senha, celula_id, rede_id, geracao_id, telefone, codigo_vip,
+                data_nascimento, fez_encontro,
+                cep, endereco, numero, bairro, cidade, estado
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/membros`, { // Antigo endpoint, manter por enquanto ou mudar para /register
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert('Cadastro realizado! Faça login.');
+                    // Volta para login
+                    document.getElementById('loginForm').style.display = 'block';
+                    document.getElementById('registerForm').style.display = 'none';
+                } else {
+                    alert('Erro no cadastro.');
+                }
+            } catch (e) { console.error(e); alert("Erro ao cadastrar"); }
+        }
+
+        // SETTINGS FUNCTIONS (Now Global)
+        async function salvarPerfil() {
+            const nome = document.getElementById('confNome').value;
+            const telefone = document.getElementById('confTel').value;
+            const biografia = document.getElementById('confBio').value;
+
+            if (!nome) return alert("Nome obrigatório");
+
+            try {
+                const res = await fetch(`${API_URL}/update_profile/${currentUser.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, telefone, biografia })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    currentUser = data; // Atualiza local
+                    alert("Perfil atualizado!");
+                    iniciarApp(); // Atualiza UI
+                } else {
+                    alert("Erro ao atualizar");
+                }
+            } catch (e) { alert("Erro de conexão"); }
+        }
+
+        async function uploadFoto() {
+            const input = document.getElementById('confFotoInput');
+            if (input.files && input.files[0]) {
+                const formData = new FormData();
+                formData.append('foto', input.files[0]);
+
+                try {
+                    // Feedback
+                    document.getElementById('confFotoPreview').style.opacity = '0.5';
+
+                    const res = await fetch(`${API_URL}/upload_foto/${currentUser.id}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        // Atualiza preview e user
+                        document.getElementById('confFotoPreview').src = API_URL.replace('/api', '') + data.foto_url;
+                        currentUser.foto_url = data.foto_url;
+                    } else {
+                        alert("Erro ao enviar foto");
+                    }
+                } catch (e) { alert("Erro conexao"); }
+                finally {
+                    document.getElementById('confFotoPreview').style.opacity = '1';
+                }
+            }
+        }
+
+        function showConfSection(sectionId) {
+            ['confMenu', 'confPerfil', 'confSeguranca'].forEach(id => {
+                document.getElementById(id).style.display = 'none';
+            });
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        async function trocarSenha() {
+            const atual = document.getElementById('confSenhaAtual').value;
+            const nova = document.getElementById('confNovaSenha').value;
+
+            if (!atual || !nova) return alert("Preencha as senhas");
+
+            try {
+                const res = await fetch(`${API_URL}/membros/${currentUser.id}/senha`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ senha_atual: atual, nova_senha: nova })
+                });
+
+                if (res.ok) {
+                    alert("Senha alterada com sucesso!");
+                    document.getElementById('confSenhaAtual').value = '';
+                    document.getElementById('confNovaSenha').value = '';
+                } else {
+                    const err = await res.json();
+                    alert(err.erro || "Erro ao trocar senha");
+                }
+            } catch (e) { alert("Erro de conexão"); }
+        }
+
+        function sair() {
+            currentUser = null;
+            localStorage.removeItem('user_session');
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('loginForm').style.display = 'block'; // Garante que o form apareça
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginSenha').value = '';
+            window.location.reload(); // Recarrega para limpar estados de memória
+        }
+
+        // AUTO LOGIN
+        window.onload = function () {
+            // Inicializa selects
+            initAddressFields();
+
+            const saved = localStorage.getItem('user_session'); // Corrigido para user_session
+            if (saved) {
+                try {
+                    currentUser = JSON.parse(saved);
+                    iniciarApp();
+                } catch (e) {
+                    localStorage.removeItem('user_session');
+                }
+            }
+        };
+
+        // MAPS LOGIC
+        let map = null;
+        let userMarker = null;
+
+        function carregarMapa() {
+            if (map) return; // Se já carregou, não recarrega do zero
+
+            // Default: São Paulo
+            map = L.map('map').setView([-23.5505, -46.6333], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Tenta pegar localização
+            initMap();
+        }
+
+        function initMap() {
+            if (!navigator.geolocation) {
+                alert("Geolocalização não suportada no seu navegador.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const userPos = [lat, lng];
+
+                    if (!map) {
+                        map = L.map('map').setView(userPos, 14);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OpenStreetMap contributors'
+                        }).addTo(map);
+                    } else {
+                        map.setView(userPos, 14);
+                    }
+
+                    // Remove marcador anterior se existir
+                    if (userMarker) map.removeLayer(userMarker);
+
+                    // Adiciona marcador do usuário (Azul diferente)
+                    userMarker = L.marker(userPos).addTo(map)
+                        .bindPopup('<b>Você está aqui</b>').openPopup();
+
+                    // Carrega células no mapa
+                    buscarCelulasNoMapa();
+                },
+                (error) => {
+                    console.error("Erro geo:", error);
+                    // Fallback: carrega células mesmo sem localização do usuário
+                    buscarCelulasNoMapa();
+                    // Opcional: Avisar usuário
+                    // alert("Não foi possível obter sua localização exata. Mostrando mapa geral.");
+                }
+            );
+        }
+
+        async function buscarCelulasNoMapa() {
+            try {
+                const res = await fetch(`${API_URL}/celulas`);
+                const celulas = await res.json();
+
+                celulas.forEach(cel => {
+                    if (cel.latitude && cel.longitude) {
+                        const marker = L.marker([cel.latitude, cel.longitude]).addTo(map);
+
+                        const popupContent = `
+                            <div style="text-align:center;">
+                                <h3 style="margin:0 0 5px; color:#4CAF50;">${cel.nome}</h3>
+                                <p style="margin:0;"><b>Líder:</b> ${cel.lider || 'N/A'}</p>
+                                ${cel.lider_treinamento ? `<p style="margin:0; font-size:11px; color:#666;"><b>Treinamento:</b> ${cel.lider_treinamento}</p>` : ''}
+                                <p style="margin:5px 0; font-size:12px;">${cel.endereco || ''}</p>
+                                <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${cel.latitude},${cel.longitude}', '_blank')" 
+                                    style="background:#fff; color:#444; border:1px solid #ddd; border-radius:4px; padding:5px 10px; cursor:pointer; margin-top:5px; width:100%; font-size:12px; display:flex; align-items:center; justify-content:center; gap:5px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+                                    Ver no Google Maps
+                                </button>
+                                <button onclick="alert('Entrar em contato com ${cel.lider}')" 
+                                    style="background:#2196F3; color:white; border:none; border-radius:4px; padding:5px 10px; cursor:pointer; margin-top:5px; width:100%;">
+                                    Entrar em Contato
+                                </button>
+                            </div>
+                        `;
+                        marker.bindPopup(popupContent);
+                    }
+                });
+            } catch (e) {
+                console.error("Erro ao carregar células no mapa:", e);
+            }
+        }
+
+
+        // APP LOGIC
+        async function iniciarApp() {
+            if (!currentUser) {
+                console.error("Tentativa de iniciar app sem usuário logado.");
+                return;
+            }
+
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+
+            // Preencher dados básicos
+            document.getElementById('userNameDisplay').textContent = currentUser.nome.split(' ')[0];
+
+            // Preencher perfil
+            document.getElementById('profileName').textContent = currentUser.nome;
+            document.getElementById('profileEmail').textContent = currentUser.email;
+
+            // Avatar Perfil
+            const imgUrl = currentUser.foto_url ? (API_URL.replace('/api', '') + currentUser.foto_url) : '';
+            if (imgUrl) {
+                document.getElementById('profileAvatarDisplay').src = imgUrl;
+            } else {
+                document.getElementById('profileAvatarDisplay').src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ccc"%3E%3Cpath d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"%2F%3E%3C%2Fsvg%3E';
+            }
+            document.getElementById('profileEncontro').textContent = currentUser.fez_encontro ? "Sim" : "Não";
+            document.getElementById('profileNasc').textContent = currentUser.data_nascimento || '--/--';
+
+            // Carregar dados da célula
+            carregarDadosCelula();
+
+            // Carregar Feed (Stories, Eventos, Escolas)
+            carregarStories();
+            // carregarEscolas(); REMOVIDO
+            carregarEventos();
+
+            switchTab('home');
+        }
+
+        function openLeaderMessages() {
+            const html = `
+                <div style="text-align:center; padding:20px;">
+                    <div style="font-size:40px; margin-bottom:10px;">✉️</div>
+                    <p><b>Mensagens do Líder</b></p>
+                    <p style="color:#666; font-size:14px;">Você não tem novas mensagens no momento.</p>
+                </div>
+            `;
+            openModal("Caixa de Entrada", html);
+        }
+
+        // --- DATA LOADERS ---
+
+        async function carregarStories() {
+            const container = document.getElementById('storiesContainer');
+            try {
+                const res = await fetch(`${API_URL}/stories`);
+                const stories = await res.json();
+
+                // Mantém o botão de "Novo" (simbolico aqui)
+                let html = `
+                 <div class="story-item" onclick="alert('Apenas Admin posta!')">
+                    <div class="story-ring" style="background: #ddd;">
+                        <div class="story-img" style="background: #fff; display:flex; align-items:center; justify-content:center; font-size:20px;">+</div>
+                    </div>
+                    <span class="story-name">Rede Agape</span>
+                 </div>
+                `;
+
+                stories.forEach(s => {
+                    html += `
+                    <div class="story-item" onclick="verStory('${s.foto_url}', 'Rede Agape', null, '${s.criado_em}', '${s.legenda || ''}')">
+                        <div class="story-ring">
+                            <img src="${API_URL.replace('/api', '') + s.foto_url}" class="story-img">
+                        </div>
+                        <span class="story-name">${s.legenda || 'Story'}</span>
+                    </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (e) { }
+        }
+
+        // CELL TAB LOGIC
+        let currentCellTab = 'mural';
+
+        function switchCellTab(tabName) {
+            currentCellTab = tabName;
+
+            // UI Update Hooks
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const btn = document.getElementById(`tab-btn-${tabName}`);
+            if (btn) btn.classList.add('active');
+
+            document.querySelectorAll('.cell-tab-content').forEach(c => c.classList.remove('active'));
+            const content = document.getElementById(`tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            if (content) content.classList.add('active');
+
+            // Load Data
+            if (tabName === 'mural') carregarAvisos();
+            if (tabName === 'pedidos') carregarPedidos();
+            if (tabName === 'testemunhos') carregarTestemunhos();
+        }
+
+        async function carregarDadosCelula() {
+            if (!currentUser) return;
+
+            // Scenario 1: User has no groups
+            if (!currentUser.celula_id && !currentUser.rede_id && !currentUser.geracao_id) {
+                document.getElementById('celulaNomeDisplay').innerText = "Você não está vinculado a uma Célula, Rede ou Geração.";
+                document.getElementById('celulaLiderDisplay').innerText = "";
+                document.getElementById('painelLiderBtn').style.display = 'none';
+                return;
+            }
+
+            // Show Leader Panel Button if applicable
+            const allowedPanel = ['Lider', 'LiderRede', 'LiderGeracao', 'Admin'];
+            const btn = document.getElementById('painelLiderBtn');
+            if (btn) {
+                btn.style.display = allowedPanel.includes(currentUser.tipo) ? 'block' : 'none';
+            }
+
+            try {
+                // Determine what to fetch
+                let url = '';
+                let type = ''; // cell, rede, geracao
+
+                if (currentUser.tipo === 'LiderRede' && currentUser.rede_id) {
+                    url = `${API_URL}/meus-dados/${currentUser.id}`;
+                    type = 'meus-dados';
+                } else if (currentUser.tipo === 'LiderGeracao' && currentUser.geracao_id) {
+                    url = `${API_URL}/meus-dados/${currentUser.id}`;
+                    type = 'meus-dados';
+                } else if (currentUser.celula_id) {
+                    url = `${API_URL}/celulas/${currentUser.celula_id}`;
+                    type = 'cell';
+                } else {
+                    // Fallback for members without cell but with other roles (unlikely but possible)
+                    url = `${API_URL}/meus-dados/${currentUser.id}`;
+                    type = 'meus-dados';
+                }
+
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (type === 'cell') {
+                    // Existing logic for cell
+                    const celula = data; // /celulas/<id> returns object directly
+                    document.getElementById('celulaNomeDisplay').innerText = celula.nome;
+                    document.getElementById('celulaLiderDisplay').innerText = `Líder: ${celula.lider}`;
+                    document.getElementById('celulaDiaDisplay').innerText = celula.dia_reuniao || 'Dia a definir';
+                    document.getElementById('celulaHoraDisplay').innerText = celula.horario_reuniao || '--:--';
+                    document.getElementById('celulaLocalDisplay').innerText = celula.endereco || 'Local a definir';
+
+                    if (celula.rede_id) {
+                        // Fetch rede name if not present? Or just hide badges for now.
+                        // Ideally we would return rede_nome from backend.
+                    }
+
+                    // Render Members
+                    renderMembros(celula.membros);
+                    switchCellTab('mural');
+
+                } else if (type === 'meus-dados') {
+                    // Handle Rede/Geracao
+                    if (data.rede) {
+                        document.getElementById('celulaNomeDisplay').innerText = data.rede.nome;
+                        document.getElementById('celulaLiderDisplay').innerText = `Líder: ${data.rede.lider_nome || '?'}`;
+                        document.getElementById('celulaLocalDisplay').innerText = "Rede";
+
+                        // TODO: Implement render for Rede children (Generations)
+
+                    } else if (data.geracao) {
+                        document.getElementById('celulaNomeDisplay').innerText = data.geracao.nome;
+                        document.getElementById('celulaLiderDisplay').innerText = `Líder: ${data.geracao.lider_nome || '?'}`;
+                        document.getElementById('celulaLocalDisplay').innerText = "Geração";
+
+                        // Render Cells of this Generation
+                        renderCelulas(data.geracao.celulas);
+                    }
+                    // Hide specific details like time/location if not applicable
+                    document.getElementById('celulaDiaDisplay').parentElement.style.display = 'none';
+                }
+
+                // If it is a cell, ensure time is visible
+                if (type === 'cell') {
+                    document.getElementById('celulaDiaDisplay').parentElement.style.display = 'flex';
+                }
+
+            } catch (e) {
+                console.error("Erro ao carregar dados do grupo", e);
+                document.getElementById('celulaNomeDisplay').innerText = "Erro ao carregar dados";
+            }
+        }
+
+        function renderCelulas(celulas) {
+            const list = document.getElementById('membrosList');
+            // Force display of members tab content area
+            document.querySelectorAll('.cell-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tabMembros').classList.add('active'); // Reusing tabMembros for list
+
+            // Adjust tabs visibility (restore for Generation/Rede View)
+            document.getElementById('tab-btn-mural').style.display = 'block';
+            document.getElementById('tab-btn-pedidos').style.display = 'block';
+            document.getElementById('tab-btn-testemunhos').style.display = 'block';
+            document.querySelector('.tabs').style.display = 'flex';
+
+
+            if (!celulas || celulas.length === 0) {
+                list.innerHTML = '<p style="padding:20px; text-align:center; color:#999;">Nenhuma célula nesta geração.</p>';
+                return;
+            }
+
+            list.innerHTML = `<h3 style="padding:15px 15px 5px; color:#666; font-size:14px;">Células da Geração</h3>` + celulas.map(c => `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:15px; border-bottom:1px solid #eee;">
+                    <div>
+                        <div style="font-weight:600; color:#333;">${c.nome}</div>
+                        <div style="font-size:12px; color:#666;">Líder: ${c.lider || 'N/A'}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:12px; background:#e8f5e9; color:#2e7d32; padding:2px 8px; border-radius:10px;">
+                            ${c.total_membros} membros
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderMembros(membros) {
+            const list = document.getElementById('membrosList');
+            // Reset UI state for Cell View
+            document.getElementById('tab-btn-mural').style.display = 'block';
+            document.getElementById('tab-btn-pedidos').style.display = 'block';
+            document.getElementById('tab-btn-testemunhos').style.display = 'block';
+            document.querySelector('.tabs').style.display = 'flex';
+
+            if (!membros || membros.length === 0) {
+                list.innerHTML = '<p style="padding:20px; text-align:center; color:#999;">Nenhum membro encontrado.</p>';
+                return;
+            }
+            list.innerHTML = membros.map(m => `
+                <div style="display:flex; align-items:center; padding:15px; border-bottom:1px solid #eee;">
+                    <div style="width:40px; height:40px; background:#eee; border-radius:50%; margin-right:15px; overflow:hidden;">
+                        ${m.foto_url ? `<img src="${API_URL.replace('/api', '') + m.foto_url}" style="width:100%; height:100%; object-fit:cover;">` : ''}
+                    </div>
+                    <div>
+                        <div style="font-weight:600; color:#333;">${m.nome}</div>
+                        <div style="font-size:12px; color:#999;">${m.tipo || 'Membro'}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- DATA FETCHING FUNCTIONS ---
+
+        async function carregarAvisos() {
+            const list = document.getElementById('listaAvisos');
+
+            // Se for líder sem célula, permitimos ver mural global/rede
+            const hasCell = currentUser.celula_id && currentUser.celula_id !== 'null';
+            const hasGroup = currentUser.rede_id || currentUser.geracao_id;
+
+            if (!hasCell && !hasGroup) {
+                list.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Mural indisponível (sem grupo/célula).</div>';
+                return;
+            }
+
+            list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Carregando...</p>';
+            try {
+                const headers = {};
+                if (currentUser) headers['User-Id'] = currentUser.id;
+
+                let url = '';
+                if (hasCell) {
+                    url = `${API_URL}/celulas/${currentUser.celula_id}/avisos`;
+                } else if (currentUser.rede_id) {
+                    url = `${API_URL}/avisos?rede_id=${currentUser.rede_id}`;
+                } else if (currentUser.geracao_id) {
+                    url = `${API_URL}/avisos?geracao_id=${currentUser.geracao_id}`;
+                }
+
+                const res = await fetch(url, { headers });
+                const avisos = await res.json();
+
+                if (avisos.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">📭<br>Nenhum aviso no mural.</div>';
+                    return;
+                }
+
+                list.innerHTML = avisos.map(a => {
+                    const isLiked = a.curtido_por_mim;
+                    const likeClass = isLiked ? 'liked' : '';
+                    const likeIcon = isLiked
+                        ? `<svg aria-label="Descurtir" color="rgb(237, 73, 86)" fill="rgb(237, 73, 86)" height="22" role="img" viewBox="0 0 48 48" width="22"><path d="M34.6 3.1c-4.5 0-7.9 1.8-10.6 5.6-2.7-3.7-6.1-5.5-10.6-5.5C6 3.1 0 9.6 0 17.6c0 7.3 5.4 12 10.6 16.5.6.5 1.3 1.1 1.9 1.7l2.3 2c4.4 3.9 6.6 5.9 7.6 6.5.5.3 1.1.5 1.6.5s1.1-.2 1.6-.5c1-.6 2.8-2.2 7.8-6.8l2-1.8c.7-.6 1.3-1.2 2-1.7C42.7 29.6 48 25 48 17.6c0-8-6-14.5-13.4-14.5z"></path></svg>`
+                        : `<svg aria-label="Curtir" color="rgb(38, 38, 38)" fill="rgb(38, 38, 38)" height="22" role="img" viewBox="0 0 24 24" width="22"><path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z"></path></svg>`;
+
+                    return `
+                        <div class="aviso-card">
+                            <div class="aviso-title">${a.titulo}</div>
+                            <div class="aviso-msg">${a.mensagem}</div>
+                            <div class="aviso-meta" style="margin-bottom:10px;">
+                                <span>✍️ ${a.autor_nome}</span>
+                                <span>${a.data}</span>
+                            </div>
+                            
+                            <div class="post-actions" style="border-top:1px solid #eee; padding-top:8px; margin-top:8px;">
+                                <button class="feed-btn like-btn ${likeClass}" onclick="toggleLikeAviso(this, ${a.id})">
+                                    ${likeIcon}
+                                </button>
+                                <button class="feed-btn" onclick="openCommentsAviso('${a.id}', '${a.titulo}')">
+                                    <svg aria-label="Comentar" color="rgb(38, 38, 38)" fill="rgb(38, 38, 38)" height="22" role="img" viewBox="0 0 24 24" width="22"><title>Comentar</title><path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></svg>
+                                </button>
+                            </div>
+                            <div style="padding: 0 5px 5px 5px; font-weight:600; font-size:12px; color:#555;" id="likes-count-aviso-${a.id}">
+                                ${a.total_curtidas} curtidas
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) { console.error(e); list.innerHTML = '<p style="text-align:center; color:red;">Erro ao carregar avisos.</p>'; }
+        }
+
+        async function carregarPedidos() {
+            const list = document.getElementById('listaPedidos');
+            const hasCell = currentUser.celula_id && currentUser.celula_id !== 'null';
+            const hasGroup = currentUser.rede_id || currentUser.geracao_id;
+
+            if (!hasCell && !hasGroup) {
+                list.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Você não tem célula.</div>';
+                return;
+            }
+
+            list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Carregando...</p>';
+            try {
+                let url = '';
+                if (hasCell) {
+                    url = `${API_URL}/celulas/${currentUser.celula_id}/pedidos`;
+                } else if (currentUser.rede_id) {
+                    url = `${API_URL}/pedidos?rede_id=${currentUser.rede_id}`;
+                } else if (currentUser.geracao_id) {
+                    url = `${API_URL}/pedidos?geracao_id=${currentUser.geracao_id}`;
+                }
+
+                const res = await fetch(url);
+                const pedidos = await res.json();
+
+                if (pedidos.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Nenhum pedido de oração ainda.</div>';
+                    return;
+                }
+
+                list.innerHTML = pedidos.map(p => `
+                    <div class="pedido-card">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <div style="width:30px; height:30px; background:#eee; border-radius:50%; overflow:hidden;">
+                                ${p.autor_foto ? `<img src="${API_URL.replace('/api', '') + p.autor_foto}" style="width:100%; height:100%; object-fit:cover;">` : ''}
+                            </div>
+                            <div style="font-weight:600; font-size:13px; color:#333;">${p.autor_nome}</div> 
+                            ${p.resolvido ? '<span class="tag-resolvido">Resolvido</span>' : ''}
+                        </div>
+                        <div style="color:#555; font-size:14px; line-height:1.4;">${p.pedido}</div>
+                        <div style="font-size:11px; color:#aaa; margin-top:8px;">${p.data}</div>
+                        ${currentUser.tipo === 'Lider' ? `<button onclick="resolverPedido(${p.id})" style="margin-top:10px; font-size:11px; padding:5px 10px; border:1px solid #ddd; background:white; border-radius:4px;">${p.resolvido ? 'Reabrir' : 'Marcar como Resolvido'}</button>` : ''}
+                    </div>
+                `).join('');
+            } catch (e) { list.innerHTML = 'Erro ao carregar pedidos.'; }
+        }
+
+        async function carregarTestemunhos() {
+            const list = document.getElementById('listaTestemunhos');
+            const hasCell = currentUser.celula_id && currentUser.celula_id !== 'null';
+            const hasGroup = currentUser.rede_id || currentUser.geracao_id;
+
+            if (!hasCell && !hasGroup) {
+                list.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Você não tem célula.</div>';
+                return;
+            }
+
+            list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Carregando...</p>';
+            try {
+                let url = '';
+                if (hasCell) {
+                    url = `${API_URL}/celulas/${currentUser.celula_id}/testemunhos`;
+                } else if (currentUser.rede_id) {
+                    url = `${API_URL}/testemunhos?rede_id=${currentUser.rede_id}`;
+                } else if (currentUser.geracao_id) {
+                    url = `${API_URL}/testemunhos?geracao_id=${currentUser.geracao_id}`;
+                }
+
+                const res = await fetch(url);
+                const testemunhos = await res.json();
+
+                if (testemunhos.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; padding:30px; color:#999;">Nenhum testemunho compartilhado.</div>';
+                    return;
+                }
+
+                list.innerHTML = testemunhos.map(t => `
+                    <div class="pedido-card" style="border-left: 3px solid var(--secondary);">
+                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <div style="width:30px; height:30px; background:#eee; border-radius:50%; overflow:hidden;">
+                                ${t.autor_foto ? `<img src="${API_URL.replace('/api', '') + t.autor_foto}" style="width:100%; height:100%; object-fit:cover;">` : ''}
+                            </div>
+                            <div style="font-weight:600; font-size:13px; color:#333;">${t.autor_nome}</div>
+                        </div>
+                        <div style="color:#555; font-size:14px; line-height:1.4;">${t.texto}</div>
+                        <div style="font-size:11px; color:#aaa; margin-top:8px;">${t.data}</div>
+                    </div>
+                `).join('');
+            } catch (e) { list.innerHTML = 'Erro ao carregar testemunhos.'; }
+        }
+
+        // --- ACTION FUNCTIONS ---
+
+        async function enviarPedido() {
+            const texto = document.getElementById('novoPedidoTexto').value;
+            if (!texto.trim()) return alert("Escreva seu pedido.");
+
+            try {
+                const res = await fetch(`${API_URL}/celulas/${currentUser.celula_id}/pedidos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ membro_id: currentUser.id, pedido: texto })
+                });
+                if (res.ok) {
+                    document.getElementById('novoPedidoTexto').value = '';
+                    carregarPedidos();
+                    alert("Pedido enviado 🙏");
+                }
+            } catch (e) { alert("Erro ao enviar"); }
+        }
+
+        async function enviarTestemunho() {
+            const texto = document.getElementById('novoTestemunhoTexto').value;
+            if (!texto.trim()) return alert("Escreva seu testemunho.");
+
+            try {
+                const res = await fetch(`${API_URL}/celulas/${currentUser.celula_id}/testemunhos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ membro_id: currentUser.id, texto: texto })
+                });
+                if (res.ok) {
+                    document.getElementById('novoTestemunhoTexto').value = '';
+                    carregarTestemunhos();
+                    alert("Testemunho compartilhado ✨");
+                }
+            } catch (e) { alert("Erro ao enviar"); }
+        }
+
+        async function resolverPedido(id) {
+            try {
+                await fetch(`${API_URL}/pedidos/${id}/resolver`, { method: 'PUT' });
+                carregarPedidos();
+            } catch (e) { alert("Erro ao atualizar status"); }
+        }
+
+        // STORY VIEWER LOGIC
+        let storyTimer = null;
+        let storyDuration = 5000; // 5 segundos por story
+        let storyStartTime = 0;
+
+        function verStory(url, nome, avatar, tempo, caption = '') {
+            const viewer = document.getElementById('storyViewer');
+            const imgInfo = url; // url pode ser objeto ou string
+            const imgSrc = (typeof url === 'string') ? API_URL.replace('/api', '') + url : '';
+
+            document.getElementById('storyMainImg').src = imgSrc;
+            document.getElementById('storyUserName').innerText = nome || 'Usuário';
+            // Avatar Logic: Use provided avatar, or placeholder if null/empty
+            const avatarUrl = avatar ? (API_URL.replace('/api', '') + avatar) : 'https://placehold.co/100?text=Agape';
+            document.getElementById('storyUserImg').src = avatarUrl;
+            // document.getElementById('storyTime').innerText = tempo; 
+            document.getElementById('storyCaption').innerText = caption;
+
+            viewer.style.display = 'flex';
+
+            // Reset Progress
+            const bar = document.getElementById('storyProgress');
+            bar.style.width = '0%';
+
+            // Start Timer
+            let start = Date.now();
+            if (storyTimer) clearInterval(storyTimer);
+
+            storyTimer = setInterval(() => {
+                let elapsed = Date.now() - start;
+                let pct = (elapsed / storyDuration) * 100;
+                if (pct >= 100) {
+                    pct = 100;
+                    clearInterval(storyTimer);
+                    fecharStory();
+                }
+                bar.style.width = pct + '%';
+            }, 50);
+        }
+
+        function fecharStory() {
+            document.getElementById('storyViewer').style.display = 'none';
+            if (storyTimer) clearInterval(storyTimer);
+        }
+
+        async function carregarEscolas() {
+            try {
+                const res = await fetch(`${API_URL}/escolas`);
+                const data = await res.json();
+
+                // 2. Lista Completa na View Escolas
+                const listaDiv = document.getElementById('listaEscolasCompleta');
+                let htmlList = '';
+
+                // Salva dados no window para acesso fácil
+                window.escolasData = data;
+
+                // alert('DEBUG: Carregando ' + data.length + ' escolas.'); // Para debug
+
+                data.forEach((e, index) => {
+                    htmlList += `
+                        <div class="school-btn" onclick="verDetalhesEscola(${index})">
+                            <div>
+                                <h3>${e.nome}</h3>
+                                <div style="font-size:12px; color:#888; margin-top:2px;">📅 ${e.dia_horario || 'Ver detalhes'}</div>
+                            </div>
+                            <div class="arrow">&gt;</div>
+                        </div>
+                    `;
+                });
+                listaDiv.innerHTML = htmlList;
+
+            } catch (e) { }
+        }
+
+        async function carregarEventos() {
+            const div = document.getElementById('feedEventos');
+            try {
+                const headers = {};
+                if (currentUser) headers['User-Id'] = currentUser.id;
+
+                const res = await fetch(`${API_URL}/eventos`, { headers });
+                const data = await res.json();
+
+                if (data.length === 0) {
+                    div.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">Nenhum evento próximo.</p>';
+                    return;
+                }
+
+                let html = '';
+                data.forEach(evt => {
+                    const date = new Date(evt.data_evento);
+                    const dia = date.getDate().toString().padStart(2, '0');
+                    const mes = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const hora = date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+
+                    const imgHtml = evt.foto_url ? `<img src="${API_URL.replace('/api', '') + evt.foto_url}" class="event-img">` : '';
+
+                    // Define ícone e classe baseado se o usuário já curtiu
+                    const isLiked = evt.curtido_por_mim;
+                    const likeClass = isLiked ? 'liked' : '';
+                    const likeIcon = isLiked
+                        ? `<svg aria-label="Descurtir" color="rgb(237, 73, 86)" fill="rgb(237, 73, 86)" height="24" role="img" viewBox="0 0 48 48" width="24"><path d="M34.6 3.1c-4.5 0-7.9 1.8-10.6 5.6-2.7-3.7-6.1-5.5-10.6-5.5C6 3.1 0 9.6 0 17.6c0 7.3 5.4 12 10.6 16.5.6.5 1.3 1.1 1.9 1.7l2.3 2c4.4 3.9 6.6 5.9 7.6 6.5.5.3 1.1.5 1.6.5s1.1-.2 1.6-.5c1-.6 2.8-2.2 7.8-6.8l2-1.8c.7-.6 1.3-1.2 2-1.7C42.7 29.6 48 25 48 17.6c0-8-6-14.5-13.4-14.5z"></path></svg>`
+                        : `<svg aria-label="Curtir" color="rgb(38, 38, 38)" fill="rgb(38, 38, 38)" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z"></path></svg>`;
+
+                    html += `
+                    <div class="event-card">
+                        ${imgHtml}
+                        <div class="event-content">
+                            <div class="event-title">${evt.titulo}</div>
+                            <div class="event-desc">${evt.descricao || ''}</div>
+                            <div class="event-loc">📍 ${evt.local || 'Local a definir'}</div>
+                            <div class="event-date" style="font-weight:400; color:#999;">🗓 ${dia}/${mes} • ${hora}</div>
+                        </div>
+                        
+                        <!-- ACTION BUTTONS -->
+                        <div class="post-actions">
+                            <button class="feed-btn like-btn ${likeClass}" onclick="toggleLike(this, ${evt.id})">
+                                ${likeIcon}
+                            </button>
+                            <button class="feed-btn" onclick="openComments('${evt.id}', '${evt.titulo}')">
+                                <svg aria-label="Comentar" class="x1lliihq x1n2onr6" color="rgb(38, 38, 38)" fill="rgb(38, 38, 38)" height="24" role="img" viewBox="0 0 24 24" width="24"><title>Comentar</title><path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></svg>
+                            </button>
+                            <button class="feed-btn" onclick="sharePost('${evt.titulo}', '${evt.descricao || ''}')">
+                                <svg aria-label="Compartilhar" class="x1lliihq x1n2onr6" color="rgb(38, 38, 38)" fill="rgb(38, 38, 38)" height="24" role="img" viewBox="0 0 24 24" width="24"><title>Compartilhar</title><line fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2" x1="22" x2="9.218" y1="3" y2="10.083"></line><polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></polygon></svg>
+                            </button>
+                        </div>
+                        <div style="padding: 0 12px 12px 12px; font-weight:600; font-size:13px;" id="likes-count-${evt.id}">
+                            ${evt.total_curtidas} curtidas
+                        </div>
+                    </div>
+                    `;
+                });
+                div.innerHTML = html;
+            } catch (e) { console.error(e); div.innerHTML = 'Erro ao carregar feed.'; }
+        }
+
+        window.toggleLikeAviso = async function (btn, avisoId) {
+            if (!currentUser) return alert('Faça login para curtir.');
+
+            const wasLiked = btn.classList.contains('liked');
+            btn.classList.toggle('liked');
+
+            if (!wasLiked) {
+                btn.innerHTML = `<svg aria-label="Descurtir" color="rgb(237, 73, 86)" fill="rgb(237, 73, 86)" height="22" role="img" viewBox="0 0 48 48" width="22"><path d="M34.6 3.1c-4.5 0-7.9 1.8-10.6 5.6-2.7-3.7-6.1-5.5-10.6-5.5C6 3.1 0 9.6 0 17.6c0 7.3 5.4 12 10.6 16.5.6.5 1.3 1.1 1.9 1.7l2.3 2c4.4 3.9 6.6 5.9 7.6 6.5.5.3 1.1.5 1.6.5s1.1-.2 1.6-.5c1-.6 2.8-2.2 7.8-6.8l2-1.8c.7-.6 1.3-1.2 2-1.7C42.7 29.6 48 25 48 17.6c0-8-6-14.5-13.4-14.5z"></path></svg>`;
+            } else {
+                btn.innerHTML = `<svg aria-label="Curtir" color="rgb(38, 38, 38)" fill="rgb(38, 38, 38)" height="22" role="img" viewBox="0 0 24 24" width="22"><path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z"></path></svg>`;
+            }
+
+            btn.style.transform = 'scale(1.2)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+
+            try {
+                const res = await fetch(`${API_URL}/avisos/${avisoId}/curtir`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ membro_id: currentUser.id })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById(`likes-count-aviso-${avisoId}`).innerText = `${data.total} curtidas`;
+                }
+            } catch (e) {
+                // Revert UI on error
+                btn.classList.toggle('liked');
+            }
+        }
+
+        window.openCommentsAviso = function (avisoId, titulo) {
+            // Reutiliza o sistema de comentários, mas aponta para o endpoint de avisos
+            // O modal de comentários usa window.currentType e window.currentId
+            window.commentType = 'aviso';
+            window.commentId = avisoId;
+            openComments(avisoId, titulo, 'aviso');
+        }
+
+        // SOCIAL INTERACTIONS (EVENTS)
+        window.toggleLike = async function (btn, eventoId) {
+            if (!currentUser) return alert('Faça login para curtir.');
+
+            // Otimistic UI: Troca visualmente antes de confirmar
+            const wasLiked = btn.classList.contains('liked');
+            btn.classList.toggle('liked');
+
+            // Atualiza ícone imediatamente
+            if (!wasLiked) {
+                btn.innerHTML = `<svg aria-label="Descurtir" color="rgb(237, 73, 86)" fill="rgb(237, 73, 86)" height="24" role="img" viewBox="0 0 48 48" width="24"><path d="M34.6 3.1c-4.5 0-7.9 1.8-10.6 5.6-2.7-3.7-6.1-5.5-10.6-5.5C6 3.1 0 9.6 0 17.6c0 7.3 5.4 12 10.6 16.5.6.5 1.3 1.1 1.9 1.7l2.3 2c4.4 3.9 6.6 5.9 7.6 6.5.5.3 1.1.5 1.6.5s1.1-.2 1.6-.5c1-.6 2.8-2.2 7.8-6.8l2-1.8c.7-.6 1.3-1.2 2-1.7C42.7 29.6 48 25 48 17.6c0-8-6-14.5-13.4-14.5z"></path></svg>`;
+            } else {
+                btn.innerHTML = `<svg aria-label="Curtir" color="rgb(38, 38, 38)" fill="rgb(38, 38, 38)" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z"></path></svg>`;
+            }
+
+            // Animação de pulso
+            btn.style.transform = 'scale(1.2)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+
+            try {
+                const res = await fetch(`${API_URL}/eventos/${eventoId}/curtir`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ membro_id: currentUser.id })
+                });
+                const data = await res.json();
+
+                // Atualiza contador de likes
+                const countDiv = document.getElementById(`likes-count-${eventoId}`);
+                if (countDiv) countDiv.innerText = `${data.total} curtidas`;
+
+            } catch (e) {
+                console.error(e);
+                // Reverte se der erro
+                btn.classList.toggle('liked');
+            }
+        }
+
+        let currentEventoId = null;
+        let currentInteractionType = 'evento';
+        let replyingToId = null;
+
+        window.openComments = async function (id, title, type = 'evento') {
+            if (!currentUser) return alert('Faça login para ver comentários.');
+
+            currentEventoId = id;
+            currentInteractionType = type;
+            replyingToId = null;
+
+            const modal = document.getElementById('commentsModal');
+            const list = document.getElementById('commentsList');
+            const input = document.getElementById('commentInput');
+            input.placeholder = "Adicione um comentário...";
+            input.value = '';
+
+            list.innerHTML = '<p style="text-align:center; padding:20px;">Carregando...</p>';
+            modal.classList.add('active');
+
+            try {
+                const url = type === 'evento'
+                    ? `${API_URL}/eventos/${id}/comentarios`
+                    : `${API_URL}/avisos/${id}/comentarios`;
+
+                const res = await fetch(url, {
+                    headers: { 'User-Id': currentUser.id }
+                });
+                const comentarios = await res.json();
+
+                let html = `
+                    <div style="text-align:center; padding:20px; color:#999; border-bottom:1px solid #eee;">
+                        <p>Comentários para <b>${title}</b></p>
+                    </div>
+                    <div style="margin-top:10px; padding-bottom: 80px;">
+                `;
+
+                if (comentarios.length === 0) {
+                    html += '<p style="text-align:center; padding:20px; color:#ccc;">Seja o primeiro a comentar!</p>';
+                } else {
+                    // Função recursiva para renderizar árvore (se suportado pelo back, mas por enquanto lista plana de pais com filhos sendo carregados ou renderizados linearmente se o back mandar plano. 
+                    // O back manda plano order by data. Vamos renderizar plano primeiro, mas com suporte visual a threads se o back mandar estruturado.
+                    // O back manda plano. Vamos apenas listar. Respostas apareceriam soltas ou teriam que ser tratadas.
+                    // Para simplificar: Lista principal. Se quiser thread visual, precisaria agrupar no front.
+                    // VAMOS SIMPLIFICAR: Lista cronológica. Resposta cita o nome.
+
+                    comentarios.forEach(c => { // AQUI É NECESSÁRIO QUE O GET RETORNE APENAS OS PAIS OU TODOS? 
+                        // SE O USER QUER RESPONDER, É MELHOR MOSTRAR TUDO.
+                        // SE O C TEM PARENT_ID, PODERIA SER INDENTADO.
+                        // VAMOS ASSUMIR LISTAGEM SIMPLES AGORA.
+
+                        const avatar = c.autor_foto
+                            ? `<img src="${API_URL.replace('/api', '') + c.autor_foto}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
+                            : `<div style="width:100%; height:100%; border-radius:50%; background:#ccc;"></div>`;
+
+                        const likeIcon = c.curtido_por_mim
+                            ? `<svg color="rgb(237, 73, 86)" fill="rgb(237, 73, 86)" height="12" role="img" viewBox="0 0 48 48" width="12"><path d="M34.6 3.1c-4.5 0-7.9 1.8-10.6 5.6-2.7-3.7-6.1-5.5-10.6-5.5C6 3.1 0 9.6 0 17.6c0 7.3 5.4 12 10.6 16.5.6.5 1.3 1.1 1.9 1.7l2.3 2c4.4 3.9 6.6 5.9 7.6 6.5.5.3 1.1.5 1.6.5s1.1-.2 1.6-.5c1-.6 2.8-2.2 7.8-6.8l2-1.8c.7-.6 1.3-1.2 2-1.7C42.7 29.6 48 25 48 17.6c0-8-6-14.5-13.4-14.5z"></path></svg>`
+                            : `<svg color="#666" fill="none" stroke="currentColor" stroke-width="2" height="12" role="img" viewBox="0 0 24 24" width="12"><path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z"></path></svg>`;
+
+                        html += `
+                        <div class="comment-item">
+                            <div class="comment-avatar">${avatar}</div>
+                            <div class="comment-text-block">
+                                <div><b>${c.autor_nome}</b> <span style="font-weight:400;">${c.texto}</span></div>
+                                <div class="comment-meta">
+                                    <span>${c.data}</span>
+                                    <span style="font-weight:600; cursor:pointer;" onclick="prepareReply(${c.id}, '${c.autor_nome}')">Responder</span>
+                                    <span onclick="toggleCommentLike(this, ${c.id})" style="cursor:pointer; display:inline-flex; align-items:center; gap:3px;">
+                                        ${likeIcon} <span class="like-count" style="font-size:11px;">${c.total_curtidas || ''}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>`;
+
+                        // Renderizar Respostas se existirem (assumindo que o endpoint traga 'respostas' flat ou nested)
+                        // Fizemos o backend incluir 'respostas' nested no to_json do comentario.
+                        if (c.respostas && c.respostas.length > 0) {
+                            c.respostas.forEach(r => {
+                                const rAvatar = r.autor_foto
+                                    ? `<img src="${API_URL.replace('/api', '') + r.autor_foto}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
+                                    : `<div style="width:100%; height:100%; border-radius:50%; background:#ccc;"></div>`;
+
+                                html += `
+                                <div class="comment-item" style="padding-left: 50px;">
+                                    <div class="comment-avatar" style="width:24px; height:24px;">${rAvatar}</div>
+                                    <div class="comment-text-block">
+                                        <div><b>${r.autor_nome}</b> <span style="font-weight:400;">${r.texto}</span></div>
+                                        <div class="comment-meta">
+                                            <span>${r.data}</span>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            });
+                        }
+                    });
+                }
+                html += '</div>';
+                list.innerHTML = html;
+
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar comentários.</p>';
+            }
+        }
+
+        window.closeComments = function () {
+            document.getElementById('commentsModal').classList.remove('active');
+            replyingToId = null;
+        }
+
+        window.prepareReply = function (id, nome) {
+            replyingToId = id;
+            const input = document.getElementById('commentInput');
+            input.placeholder = `Respondendo a ${nome}...`;
+            input.focus();
+        }
+
+        window.toggleCommentLike = async function (span, id) {
+            if (!currentUser) return;
+            // Optimistic
+            const svg = span.querySelector('svg');
+            const count = span.querySelector('.like-count');
+            const isLiked = svg.getAttribute('fill') !== 'none';
+
+            // Toggle Visual
+            if (isLiked) {
+                svg.setAttribute('fill', 'none');
+                svg.setAttribute('stroke', 'currentColor');
+                svg.innerHTML = `<path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218Z"></path>`;
+                svg.setAttribute('color', '#666');
+            } else {
+                svg.setAttribute('fill', 'rgb(237, 73, 86)');
+                svg.setAttribute('stroke', 'none');
+                svg.innerHTML = `<path d="M34.6 3.1c-4.5 0-7.9 1.8-10.6 5.6-2.7-3.7-6.1-5.5-10.6-5.5C6 3.1 0 9.6 0 17.6c0 7.3 5.4 12 10.6 16.5.6.5 1.3 1.1 1.9 1.7l2.3 2c4.4 3.9 6.6 5.9 7.6 6.5.5.3 1.1.5 1.6.5s1.1-.2 1.6-.5c1-.6 2.8-2.2 7.8-6.8l2-1.8c.7-.6 1.3-1.2 2-1.7C42.7 29.6 48 25 48 17.6c0-8-6-14.5-13.4-14.5z"></path>`;
+                svg.setAttribute('color', 'rgb(237, 73, 86)');
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/comentarios/${id}/curtir`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ membro_id: currentUser.id })
+                });
+                const data = await res.json();
+                count.innerText = data.total > 0 ? data.total : '';
+            } catch (e) { console.error(e); }
+        }
+
+        window.postComment = async function () {
+            if (!currentUser) return alert('Faça login para comentar.');
+            if (!currentEventoId) return;
+
+            const input = document.getElementById('commentInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Define URL baseado se é resposta ou comentário novo
+            let url = '';
+            if (replyingToId) {
+                url = `${API_URL}/comentarios/${replyingToId}/responder`;
+            } else {
+                url = currentInteractionType === 'evento'
+                    ? `${API_URL}/eventos/${currentEventoId}/comentar`
+                    : `${API_URL}/avisos/${currentEventoId}/comentar`;
+            }
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        membro_id: currentUser.id,
+                        texto: text
+                    })
+                });
+                const novoComentario = await res.json();
+
+                // Recarrega
+                const title = document.querySelector('#commentsModal b') ? document.querySelector('#commentsModal b').innerText : "Post";
+                openComments(currentEventoId, title, currentInteractionType);
+
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao enviar comentário.');
+            }
+        }
+
+        window.sharePost = function (title, text) {
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: text,
+                    url: window.location.href
+                }).catch(console.error);
+            } else {
+                alert('Função de compartilhar não suportada neste navegador.');
+            }
+        }
+
+
+
+        // NAVIGATION
+        function switchTab(tabName) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(el => {
+                if (el.id !== 'authSection') el.style.display = 'none';
+                el.classList.remove('active');
+            });
+
+            // Remove active class from nav
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            // Show target view
+            if (tabName === 'home') {
+                document.getElementById('homeView').style.display = 'block';
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+            } else if (tabName === 'celula') {
+                document.getElementById('celulaView').style.display = 'block';
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+            } else if (tabName === 'escolas') {
+                document.getElementById('escolasView').style.display = 'block';
+                // No specific nav item active (or create one)
+            } else if (tabName === 'perfil') {
+                document.getElementById('perfilView').style.display = 'block';
+                document.querySelectorAll('.nav-item')[2].classList.add('active');
+            } else if (tabName === 'mapa') {
+                document.getElementById('mapaView').style.display = 'block';
+                // Delay para render correto do Leaflet
+                setTimeout(() => {
+                    if (!map) {
+                        carregarMapa();
+                    } else {
+                        map.invalidateSize();
+                    }
+                }, 100);
+            } else if (tabName === 'config') {
+
+                document.getElementById('configView').style.display = 'block';
+                // Reseta para o menu inicial
+                showConfSection('confMenu');
+
+                // Preenche campos de config
+                document.getElementById('confNome').value = currentUser.nome;
+                document.getElementById('confTel').value = currentUser.telefone || '';
+                document.getElementById('confBio').value = currentUser.biografia || '';
+
+                // Preview Foto
+                const imgUrl = currentUser.foto_url ? (API_URL.replace('/api', '') + currentUser.foto_url) : '';
+                // Placeholder se não tiver foto
+                if (imgUrl) {
+                    document.getElementById('confFotoPreview').src = imgUrl;
+                } else {
+                    // SVG Placeholder Colorido
+                    document.getElementById('confFotoPreview').src = 'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234CAF50"%3E%3Cpath d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"%2F%3E%3C%2Fsvg%3E';
+                }
+            }
+        }
+
+        // Show/Hide Config Sections (GLOBAL)
+        window.showConfSection = function (sectionId) {
+            ['confMenu', 'confPerfil', 'confSeguranca'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            const target = document.getElementById(sectionId);
+            if (target) target.style.display = 'block';
+        }
+
+        function navTo(tab) {
+            switchTab(tab);
+        }
+
+
+        // SMART ADDRESS FUNCTIONS
+        const ESTADOS = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
+
+        function initAddressFields() {
+            // Popula selects de estado
+            ['reg'].forEach(prefix => {
+                const sel = document.getElementById(prefix + 'Estado');
+                if (!sel) return;
+                ESTADOS.forEach(uf => {
+                    const opt = document.createElement('option');
+                    opt.value = uf;
+                    opt.innerText = uf;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        async function buscarCep(prefix) {
+            let cep = document.getElementById(prefix + 'Cep').value.replace(/\D/g, '');
+            if (cep.length !== 8) return;
+
+            // Feedback visual
+            document.getElementById(prefix + 'End').value = 'Buscando...';
+
+            try {
+                const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await res.json();
+
+                if (!data.erro) {
+                    document.getElementById(prefix + 'End').value = data.logradouro;
+                    document.getElementById(prefix + 'Bairro').value = data.bairro;
+                    document.getElementById(prefix + 'Estado').value = data.uf;
+
+                    // Carrega cidades do estado e seleciona a certa
+                    await carregarCidades(prefix, data.localidade);
+
+                    document.getElementById(prefix + 'Num').focus();
+                } else {
+                    document.getElementById(prefix + 'End').value = '';
+                    alert('CEP não encontrado!');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao buscar CEP');
+                document.getElementById(prefix + 'End').value = '';
+            }
+        }
+
+        async function carregarCidades(prefix, selecionarCidade = null) {
+            const uf = document.getElementById(prefix + 'Estado').value;
+            const selCidade = document.getElementById(prefix + 'Cidade');
+            selCidade.innerHTML = '<option value="">Carregando...</option>';
+
+            if (!uf) {
+                selCidade.innerHTML = '<option value="">Cidade</option>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`);
+                const cidades = await res.json();
+
+                selCidade.innerHTML = '<option value="">Selecione...</option>';
+                cidades.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.nome;
+                    opt.innerText = c.nome;
+                    if (selecionarCidade && c.nome === selecionarCidade) opt.selected = true;
+                    selCidade.appendChild(opt);
+                });
+            } catch (e) {
+                selCidade.innerHTML = '<option value="">Erro ao carregar</option>';
+            }
+        }
+
+        // Inicializa selects ao carregar
+        window.onload = function () {
+            initAddressFields();
+            if (currentUser) iniciarApp();
+        }
+
+        // --- MODAL & ESCOLAS DETAIL ---
+        const modal = document.getElementById('genericModal');
+
+        function openModal(title, contentHtml) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = contentHtml;
+            document.getElementById('genericModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('genericModal').style.display = 'none';
+        }
+
+        // Close when clicking outside
+        window.onclick = function (event) {
+            const m = document.getElementById('genericModal');
+            if (event.target == m) m.style.display = "none";
+        }
+
+        // Helper para detalhes escola
+        function verDetalhesEscola(index) {
+            const e = window.escolasData[index];
+            if (!e) return;
+
+            const html = `
+                <p><b>Descrição:</b><br>${e.descricao || "Sem descrição."}</p>
+                <div style="background:#f9f9f9; padding:10px; border-radius:8px; margin-top:10px;">
+                    <p style="margin:0; font-size:14px;"><b>Horário:</b> ${e.dia_horario || "A definir"}</p>
+                </div>
+                ${e.foto_url ? `<img src="${API_URL.replace('/api', '') + e.foto_url}" style="width:100%; margin-top:15px; border-radius:8px;">` : ''}
+                <div style="margin-top:20px; font-size:12px; color:#666; text-align:center;">
+                    Fale com seu líder para se inscrever!
+                </div>
+            `;
+            openModal(e.nome, html);
+        }
+
+        // --- SHEET CONTROL ---
+        function closeAllSheets() {
+            closeComments();
+            fecharPainelLider();
+        }
+
+        async function abrirPainelLider() {
+            document.getElementById('painelLiderModal').classList.add('active');
+            document.getElementById('sheetOverlay').classList.add('active');
+
+            // Se for lider de célula, pré-preencher configurações
+            const configSection = document.getElementById('leaderCellConfig');
+            if (currentUser.tipo === 'Lider' && currentUser.celula_id) {
+                configSection.style.display = 'block';
+                try {
+                    const res = await fetch(`${API_URL}/celulas/${currentUser.celula_id}`);
+                    const cel = await res.json();
+                    document.getElementById('leaderCellDia').value = cel.dia_reuniao || '';
+                    document.getElementById('leaderCellHora').value = cel.horario_reuniao || '';
+                } catch (e) { }
+            } else {
+                configSection.style.display = 'none';
+            }
+        }
+
+        function fecharPainelLider() {
+            document.getElementById('painelLiderModal').classList.remove('active');
+            // Só remove overlay se comment modal não estiver aberto
+            if (!document.getElementById('commentsModal').classList.contains('active')) {
+                document.getElementById('sheetOverlay').classList.remove('active');
+            }
+        }
+
+        async function carregarGestaoMembros() {
+            const container = document.getElementById('listaGestaoMembros');
+            const btn = document.querySelector('#gestaoMembrosContainer button');
+
+            container.style.display = 'block';
+            container.innerHTML = '<p style="text-align:center; color:#999;">Carregando...</p>';
+            if (btn) btn.style.display = 'none';
+
+            try {
+                // Determine source ID and type
+                let url = '';
+                if (currentUser.tipo === 'Lider' && currentUser.celula_id) {
+                    url = `${API_URL}/celulas/${currentUser.celula_id}`;
+                } else if (currentUser.tipo === 'LiderRede' && currentUser.rede_id) {
+                    url = `${API_URL}/redes/${currentUser.rede_id}`; // Need endpoint or logic
+                    // Fallback check:
+                } else if (currentUser.tipo === 'LiderGeracao' && currentUser.geracao_id) {
+                    // For generation leader, maybe list cells? Or all members?
+                    // Let's list Cells for now as they trigger "members" of the generation.
+                    url = `${API_URL}/meus-dados/${currentUser.id}`;
+                } else {
+                    container.innerHTML = '<p>Você não lidera um grupo direto.</p>';
+                    return;
+                }
+
+                const res = await fetch(url);
+                const data = await res.json();
+
+                let html = '';
+                let items = [];
+
+                if (data.membros) {
+                    items = data.membros;
+                } else if (data.geracao && data.geracao.celulas) {
+                    // If generation, list cells as items
+                    items = data.geracao.celulas.map(c => ({ ...c, isCell: true }));
+                } else if (data.rede && data.rede.geracoes) {
+                    items = data.rede.geracoes.map(g => ({ ...g, isGen: true }));
+                }
+
+                if (items.length === 0) {
+                    container.innerHTML = '<p style="text-align:center;">Nenhum item encontrado.</p>';
+                    return;
+                }
+
+                items.forEach(item => {
+                    const name = item.nome;
+                    const sub = item.tipo || (item.isCell ? 'Célula' : 'Membro');
+                    const img = item.foto_url ? (API_URL.replace('/api', '') + item.foto_url) : '';
+
+                    html += `
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid #eee;">
+                            <div style="display:flex; align-items:center;">
+                                <div style="width:32px; height:32px; background:#eee; border-radius:50%; margin-right:10px; overflow:hidden;">
+                                    ${img ? `<img src="${img}" style="width:100%; height:100%; object-fit:cover;">` : ''}
+                                </div>
+                                <div>
+                                    <div style="font-weight:600; font-size:13px;">${name}</div>
+                                    <div style="font-size:11px; color:#999;">${sub}</div>
+                                </div>
+                            </div>
+                            <button onclick="alert('Funcionalidade de editar em breve')" style="font-size:11px; padding:4px 8px; border:1px solid #ddd; background:none; border-radius:4px;">
+                                ⚙️
+                            </button>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar.</p>';
+                if (btn) btn.style.display = 'block';
+            }
+        }
+
+        async function postarAviso() {
+            const titulo = document.getElementById('novoAvisoTitulo').value;
+            const msg = document.getElementById('novoAvisoMsg').value;
+
+            if (!titulo || !msg) return alert("Preencha título e mensagem");
+
+            // Define celula_id based on leader role
+            let targetId = currentUser.celula_id;
+            let payload = {
+                autor_id: currentUser.id,
+                titulo,
+                mensagem: msg,
+                rede_id: currentUser.rede_id,
+                geracao_id: currentUser.geracao_id
+            };
+
+            // If leader network/generation but no cell, use fallback ID or update endpoint
+            // Our current handle_avisos requires celula_id in URL.
+            // Let's use 0 or something if not in a cell? 
+            // Better: update handle_avisos in app.py to handle this, or send to /api/avisos (POST to create?)
+            // I'll use the existing /api/celulas/ID/avisos for now, providing celula_id=0 if null.
+            const cid = targetId && targetId !== 'null' ? targetId : 0;
+
+            try {
+                const res = await fetch(`${API_URL}/celulas/${cid}/avisos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert("Aviso publicado!");
+                    document.getElementById('novoAvisoTitulo').value = '';
+                    document.getElementById('novoAvisoMsg').value = '';
+                    fecharPainelLider();
+                    if (currentCellTab === 'mural') carregarAvisos();
+                } else {
+                    alert((await res.json()).error || "Erro ao publicar");
+                }
+            } catch (e) { alert("Erro de conexão"); }
+        }
+
+        async function postarStoryLeader() {
+            const fileInput = document.getElementById('leaderStoryFile');
+            const legenda = document.getElementById('leaderStoryLegenda').value;
+
+            if (!fileInput.files[0]) return alert("Selecione uma imagem!");
+
+            try {
+                // 1. Upload imagem
+                const fd = new FormData();
+                fd.append('file', fileInput.files[0]);
+                const upRes = await fetch(`${API_URL}/upload`, { method: 'POST', body: fd });
+                const upData = await upRes.json();
+                if (!upRes.ok) throw new Error(upData.error || "Erro no upload");
+
+                // 2. Criar Story no banco
+                const storyRes = await fetch(`${API_URL}/stories`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        foto_url: upData.url,
+                        legenda: legenda,
+                        autor_id: currentUser.id,
+                        celula_id: currentUser.celula_id,
+                        rede_id: currentUser.rede_id,
+                        geracao_id: currentUser.geracao_id
+                    })
+                });
+
+                if (storyRes.ok) {
+                    alert("Story publicado com sucesso!");
+                    fileInput.value = '';
+                    document.getElementById('leaderStoryLegenda').value = '';
+                    fecharPainelLider();
+                    carregarStories();
+                } else {
+                    alert("Erro ao salvar story.");
+                }
+            } catch (e) {
+                console.error(e);
+                alert(e.message || "Erro ao publicar story");
+            }
+        }
+
+        async function salvarConfiguracoesCelula() {
+            const dia = document.getElementById('leaderCellDia').value;
+            const hora = document.getElementById('leaderCellHora').value;
+
+            try {
+                const res = await fetch(`${API_URL}/celulas/${currentUser.celula_id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dia_reuniao: dia,
+                        horario_reuniao: hora
+                    })
+                });
+
+                if (res.ok) {
+                    alert("Configurações salvas!");
+                    carregarDadosCelula();
+                } else {
+                    alert("Erro ao salvar card.");
+                }
+            } catch (e) { alert("Erro de conexão"); }
+        }
+
+        async function abrirGestaoConteudo() {
+            const container = document.getElementById('listaMinhaGestao');
+            container.style.display = 'block';
+            container.innerHTML = '<p style="text-align:center; color:#999;">Buscando posts...</p>';
+
+            try {
+                // Determina filtros baseado no tipo de lider
+                let queryFilter = `autor_id=${currentUser.id}`;
+                let title = "Meus Posts";
+
+                if (currentUser.tipo === 'LiderGeracao') {
+                    queryFilter = `geracao_id=${currentUser.geracao_id}`;
+                    title = "Posts da Geração";
+                } else if (currentUser.tipo === 'LiderRede') {
+                    queryFilter = `rede_id=${currentUser.rede_id}`;
+                    title = "Posts da Rede";
+                }
+
+                // Busca Avisos
+                const resA = await fetch(`${API_URL}/avisos?${queryFilter}`);
+                const avisos = await resA.json();
+
+                // Busca Stories
+                const resS = await fetch(`${API_URL}/stories?${queryFilter}`);
+                const stories = await resS.json();
+
+                let html = `<h5>${title} (Feed)</h5>`;
+                if (avisos.length === 0) html += '<p style="font-size:12px; color:#999; margin:10px 0;">Nenhum post encontrado.</p>';
+                avisos.forEach(a => {
+                    html += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:#f9f9f9; border-radius:8px; margin-bottom:5px;">
+                            <div style="font-size:13px; font-weight:600;">
+                                ${a.titulo} 
+                                <br><small style="font-weight:400; color:#888;">Autor: ${a.autor_nome} | ${a.data}</small>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <button onclick="editarAviso(${a.id}, '${a.titulo.replace(/'/g, "\\'")}', '${a.mensagem.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')" style="background:#e3f2fd; color:#1565c0; border:none; padding:5px 8px; border-radius:4px; font-size:11px;">Editar</button>
+                                <button onclick="excluirAviso(${a.id})" style="background:#fee; color:#d32f2f; border:none; padding:5px 8px; border-radius:4px; font-size:11px;">Excluir</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `<h5 style="margin-top:15px;">${title} (Stories)</h5>`;
+                if (stories.length === 0) html += '<p style="font-size:12px; color:#999; margin:10px 0;">Nenhum story ativo.</p>';
+                stories.forEach(s => {
+                    html += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:#f9f9f9; border-radius:8px; margin-bottom:5px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <img src="${API_URL.replace('/api', '') + s.foto_url}" style="width:30px; height:30px; object-fit:cover; border-radius:4px;">
+                                <div style="font-size:13px; font-weight:600;">
+                                    Story <br><small style="font-weight:400; color:#888;">Autor: ${s.autor_nome} | ID: ${s.id}</small>
+                                </div>
+                            </div>
+                            <button onclick="excluirStory(${s.id})" style="background:#fee; color:#d32f2f; border:none; padding:5px 8px; border-radius:4px; font-size:11px;">Excluir</button>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = '<p style="color:red; text-align:center;">Erro ao carregar conteúdo.</p>';
+            }
+        }
+
+        async function editarAviso(id, tituloAtual, msgAtual) {
+            const novoTitulo = prompt("Novo Título:", tituloAtual);
+            if (novoTitulo === null) return;
+            const novaMsg = prompt("Nova Mensagem:", msgAtual);
+            if (novaMsg === null) return;
+
+            if (!novoTitulo || !novaMsg) return alert("Preencha título e mensagem");
+
+            try {
+                const res = await fetch(`${API_URL}/avisos/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ titulo: novoTitulo, mensagem: novaMsg })
+                });
+
+                if (res.ok) {
+                    alert("Aviso atualizado!");
+                    abrirGestaoConteudo();
+                    if (currentCellTab === 'mural') carregarAvisos();
+                } else {
+                    alert("Erro ao atualizar aviso");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Erro de conexão");
+            }
+        }
+
+        async function excluirAviso(id) {
+            if (!confirm("Excluir este aviso permanentemente?")) return;
+            try {
+                const res = await fetch(`${API_URL}/avisos/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert("Aviso removido!");
+                    abrirGestaoConteudo();
+                    if (currentCellTab === 'mural') carregarAvisos();
+                } else alert("Erro ao excluir");
+            } catch (e) { alert("Erro de conexão"); }
+        }
+
+        async function excluirStory(id) {
+            if (!confirm("Excluir este story permanentemente?")) return;
+            try {
+                const res = await fetch(`${API_URL}/stories/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert("Story removido!");
+                    abrirGestaoConteudo();
+                    carregarStories();
+                } else alert("Erro ao excluir");
+            } catch (e) { alert("Erro de conexão"); }
+        }
+    </script>
+</body>
+
+</html>

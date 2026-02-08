@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Células Rede Agape - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #333;
+            /* Darker theme for Admin */
+            --primary-dark: #000;
+            --secondary: #4CAF50;
+            --bg: #f4f4f9;
+            --text: #333;
+            --white: #fff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 50px;
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        header button {
+            background: none;
+            border: 1px solid white;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: #666;
+        }
+
+        .grid-menu {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: 0.2s;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .menu-item h3 {
+            margin: 10px 0 0;
+            font-size: 16px;
+        }
+
+        .menu-item span {
+            font-size: 24px;
+        }
+
+        .list-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* Tabs */
+        .admin-section {
+            display: none;
+        }
+
+        .admin-section.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header id="adminHeader" style="display: none;">
+        <h1>Células Rede Agape - Admin</h1>
+        <button onclick="logout()">Sair</button>
+    </header>
+
+    <div class="container" id="loginArea">
+        <div class="card" style="max-width: 400px; margin: 50px auto;">
+            <h2>Login Administrativo</h2>
+            <input type="email" id="adminEmail" placeholder="Email">
+            <input type="password" id="adminSenha" placeholder="Senha">
+            <button class="btn" onclick="loginAdmin()">Entrar</button>
+        </div>
+    </div>
+
+    <div id="sec-dashboard" class="container admin-section">
+
+        <div class="grid-menu">
+
+            <div class="menu-item" onclick="resetEventoForm(); showSection('criarEvento')">
+                <span>📅</span>
+                <h3>Criar Evento</h3>
+            </div>
+            <div class="menu-item" onclick="showSection('gerenciarEventos')">
+                <span>edit</span>
+                <h3>Gerenciar Eventos</h3>
+            </div>
+
+            <div class="menu-item" onclick="showSection('postarStory')">
+                <span>📸</span>
+                <h3>Postar Story</h3>
+            </div>
+            <div class="menu-item" onclick="showSection('gerenciarStories')">
+                <span>👁️</span>
+                <h3>Gerenciar Stories</h3>
+            </div>
+
+            <div class="menu-item" onclick="showSection('novaCelula')">
+                <span>🏰</span>
+                <h3>Criar Célula</h3>
+            </div>
+
+            <div class="menu-item" onclick="showSection('criarRede')">
+                <span>🌐</span>
+                <h3>Criar Rede</h3>
+            </div>
+            <div class="menu-item" onclick="showSection('criarGeracao')">
+                <span>👥</span>
+                <h3>Criar Geração</h3>
+            </div>
+
+            <div class="menu-item" onclick="showSection('listarCelulas')">
+                <span>📋</span>
+                <h3>Listar Células</h3>
+            </div>
+            <div class="menu-item" onclick="showSection('membrosSemCelula')">
+                <span>⚠️</span>
+                <h3>Sem Célula</h3>
+            </div>
+
+            <div class="menu-item" onclick="showSection('gerenciarUsuarios')">
+                <span>👤</span>
+                <h3>Gerenciar Usuários</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: CRIAR REDE -->
+    <div id="sec-criarRede" class="admin-section">
+        <button class="btn btn-secondary" onclick="showSection('dashboard')" style="margin-bottom:20px;">&larr;
+            Voltar</button>
+        <div class="card">
+            <h2>Nova Rede</h2>
+            <input type="text" id="redeNome" placeholder="Nome da Rede (ex: Rede Jovem)">
+            <input type="text" id="redeLider" placeholder="Nome do Líder da Rede">
+            <input type="text" id="redeLiderTel" placeholder="Telefone do Líder">
+            <button class="btn" onclick="criarRede()">Salvar Rede</button>
+        </div>
+        <div class="card">
+            <h2>Redes Cadastradas</h2>
+            <div id="listaRedesAdmin"></div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: CRIAR GERAÇÃO -->
+    <div id="sec-criarGeracao" class="admin-section">
+        <button class="btn btn-secondary" onclick="showSection('dashboard')" style="margin-bottom:20px;">&larr;
+            Voltar</button>
+        <div class="card">
+            <h2>Nova Geração</h2>
+            <select id="geracaoRedeId">
+                <option value="">Selecione a Rede</option>
+            </select>
+            <input type="text" id="geracaoNome" placeholder="Nome da Geração (ex: Geração Eleitos)">
+            <input type="text" id="geracaoLider" placeholder="Nome do Líder da Geração">
+            <input type="text" id="geracaoLiderTel" placeholder="Telefone do Líder">
+            <button class="btn" onclick="criarGeracao()">Salvar Geração</button>
+        </div>
+        <div class="card">
+            <h2>Gerações Cadastradas</h2>
+            <div id="listaGeracoesAdmin"></div>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: NOVA CÉLULA -->
+    <div id="sec-novaCelula" class="admin-section">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 id="tituloNovaCelula">Cadastrar Nova Célula</h2>
+                <button class="btn" style="background:#ddd; color:#333; padding:5px 10px;"
+                    onclick="limparFormCelula(); showSection('listarCelulas')">Cancelar / Voltar</button>
+            </div>
+            <input type="hidden" id="editCelId">
+
+            <h3 style="font-size:14px; margin-bottom:10px;">Vincular a Rede/Geração</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <select id="newCelRede" onchange="carregarGeracoesSelect('newCelGeracao', this.value)">
+                    <option value="">Selecione a Rede (Opcional)</option>
+                </select>
+                <select id="newCelGeracao">
+                    <option value="">Selecione a Geração (Opcional)</option>
+                </select>
+            </div>
+
+            <input type="text" id="newCelNome" placeholder="Nome da Célula">
+            <input type="text" id="newCelLider" placeholder="Nome dos Líderes">
+            <input type="text" id="newCelLiderTreinamento" placeholder="Líder em Treinamento (Opcional)">
+
+            <h3>Endereço</h3>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="newCelCep" placeholder="CEP" onblur="buscarCep('newCel')" maxlength="10">
+                <button class="btn" style="width: auto;" onclick="buscarCep('newCel')">🔍</button>
+            </div>
+            <input type="text" id="newCelEnd" placeholder="Rua / Logradouro">
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="newCelNum" placeholder="Número">
+                <input type="text" id="newCelBairro" placeholder="Bairro">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="newCelCidade" placeholder="Cidade">
+                <input type="text" id="newCelEstado" placeholder="UF" style="width: 60px;">
+            </div>
+
+            <h3>Localização (Mapa)</h3>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="newCelLat" placeholder="Latitude (ex: -2.55)">
+                <input type="text" id="newCelLng" placeholder="Longitude (ex: -44.12)">
+            </div>
+            <small style="color:#666; display:block; margin-bottom:10px;">Use o Google Maps para pegar a Lat/Long
+                exata se necessário.</small>
+
+            <button class="btn" onclick="criarCelula()">Salvar Célula</button>
+            <button class="btn btn-secondary" style="margin-top:10px;"
+                onclick="showSection('dashboard')">Voltar</button>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: LISTAR CÉLULAS -->
+    <div id="sec-listarCelulas" class="admin-section">
+        <div class="card">
+            <h2>Células Cadastradas</h2>
+            <button class="btn btn-secondary" onclick="carregarCelulas()"
+                style="margin-bottom:15px; font-size:12px; padding:8px;">Atualizar Lista</button>
+            <div id="listaCelulas">Carregando...</div>
+            <button class="btn btn-secondary" style="margin-top:10px;"
+                onclick="showSection('dashboard')">Voltar</button>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: MEMBROS SEM CÉLULA -->
+    <div id="sec-membrosSemCelula" class="admin-section">
+        <div class="card">
+            <h2>Membros sem Célula</h2>
+            <p>Estes usuários se cadastraram mas não vincularam a nenhuma célula.</p>
+            <div id="listaSemCelula">Carregando...</div>
+            <button class="btn btn-secondary" style="margin-top:10px;"
+                onclick="showSection('dashboard')">Voltar</button>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: POSTAR STORY -->
+    <div id="sec-postarStory" class="admin-section">
+        <div class="card">
+            <h2>Postar Story</h2>
+            <p>O story aparecerá no topo do app por 24h.</p>
+            <input type="file" id="storyFile" accept="image/*">
+            <input type="text" id="storyLegenda" placeholder="Legenda (Opcional)">
+            <button class="btn" onclick="postarStory()">Publicar</button>
+            <div id="storyPreview" style="margin-top:10px;"></div>
+            <button class="btn btn-secondary" style="margin-top:10px;"
+                onclick="showSection('dashboard')">Voltar</button>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: CRIAR EVENTO -->
+    <div id="sec-criarEvento" class="admin-section">
+        <div class="card">
+            <h2 id="evtFormTitle">Novo Evento</h2>
+            <input type="hidden" id="evtEditId"> <!-- Hidden ID for Editing -->
+
+            <input type="text" id="evtTitulo" placeholder="Título do Evento">
+            <textarea id="evtDescricao" placeholder="Descrição"
+                style="width:100%; margin-bottom:10px; padding:10px;"></textarea>
+            <label>Data e Hora:</label>
+            <input type="datetime-local" id="evtData">
+            <input type="text" id="evtLocal" placeholder="Local (ex: Igreja Sede)">
+
+            <label>Banner do Evento:</label>
+            <input type="file" id="evtFile" accept="image/*">
+            <div id="evtPreview" style="margin-bottom:10px;"></div>
+
+            <button class="btn" onclick="criarEvento()">Salvar Evento</button>
+            <button class="btn btn-secondary" style="margin-top:10px;"
+                onclick="showSection('dashboard')">Voltar</button>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: GERENCIAR EVENTOS -->
+    <div id="sec-gerenciarEventos" class="admin-section">
+        <div class="card">
+            <h2>Gerenciar Eventos</h2>
+            <button class="btn btn-secondary" onclick="carregarEventosAdmin()"
+                style="margin-bottom:10px; font-size:12px;">Atualizar</button>
+            <div id="listaEventosAdmin">Carregando...</div>
+            <button class="btn btn-secondary" style="margin-top:10px;"
+                onclick="showSection('dashboard')">Voltar</button>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: GERENCIAR STORIES -->
+    <div id="sec-gerenciarStories" class="admin-section">
+        <div class="card">
+            <h2>Gerenciar Stories (Ativos)</h2>
+            <button class="btn btn-secondary" onclick="carregarStoriesAdmin()"
+                style="margin-bottom:10px; font-size:12px;">Atualizar</button>
+            <div id="listaStoriesAdmin">Carregando...</div>
+            <button class="btn btn-secondary" style="margin-top:10px;"
+                onclick="showSection('dashboard')">Voltar</button>
+        </div>
+    </div>
+
+    <!-- SEÇÃO: GERENCIAR USUÁRIOS -->
+    <div id="sec-gerenciarUsuarios" class="admin-section">
+        <div class="card">
+            <h2>Gerenciar Usuários (Todos)</h2>
+            <div style="margin-bottom:15px; display:flex; gap:10px;">
+                <input type="text" id="searchUser" placeholder="Buscar por nome ou email..." style="margin-bottom:0;">
+                <button class="btn" style="width:auto;" onclick="carregarUsuariosAdmin()">Buscar</button>
+            </div>
+
+            <div id="listaUsuariosAdmin">Carregando...</div>
+
+            <button class="btn btn-secondary" style="margin-top:10px;"
+                onclick="showSection('dashboard')">Voltar</button>
+        </div>
+    </div>
+
+    <script>
+        const IS_FILE = window.location.protocol === 'file:';
+        const API_URL = IS_FILE ? 'http://localhost:5000/api' : '/api';
+
+        // -- AUTH --
+        function loginAdmin() {
+            // Simples verificação por enquanto - ideal seria role no backend
+            const email = document.getElementById('adminEmail').value;
+            const senha = document.getElementById('adminSenha').value;
+
+            fetch(`${API_URL}/login`, {
+                method: 'POST',
+                body: JSON.stringify({ email, senha }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.usuario) {
+                        const tipo = data.usuario.tipo;
+                        // Permite Admin, Lider, LiderRede, LiderGeracao
+                        const allowed = ['Admin', 'Lider', 'LiderRede', 'LiderGeracao'];
+
+                        if (allowed.includes(tipo)) {
+                            document.getElementById('loginArea').style.display = 'none';
+                            document.getElementById('adminHeader').style.display = 'flex';
+                            showSection('dashboard');
+                            alert('Bem-vindo, ' + data.usuario.nome);
+                        } else {
+                            alert('Acesso negado. Apenas líderes.');
+                        }
+                    } else {
+                        alert(data.erro || 'Login falhou');
+                    }
+                })
+                .catch(() => alert('Erro de conexão'));
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        // -- NAV --
+        function showSection(id) {
+            document.querySelectorAll('.admin-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('sec-' + id).classList.add('active');
+
+            if (id === 'listarCelulas') carregarCelulas();
+            if (id === 'membrosSemCelula') carregarSemCelula();
+            if (id === 'gerenciarEscolas') carregarEscolasAdmin();
+            if (id === 'criarRede') carregarRedesAdmin();
+            if (id === 'criarGeracao') { carregarGeracoesAdmin(); carregarRedesAdmin(); } // Carrega redes para o select
+            if (id === 'criarRede') carregarRedesAdmin();
+            if (id === 'criarGeracao') { carregarGeracoesAdmin(); carregarRedesAdmin(); } // Carrega redes para o select
+            if (id === 'novaCelula') carregarRedesAdmin(); // Carrega redes para cadastro de célula
+            if (id === 'gerenciarUsuarios') carregarUsuariosAdmin();
+        }
+
+        function hideSections() {
+            document.querySelectorAll('.admin-section').forEach(el => el.classList.remove('active'));
+        }
+
+        // -- FUNÇÕES --
+
+
+
+        // --- HIERARQUIA (REDES E GERAÇÕES) ---
+
+        async function carregarRedesAdmin() {
+            const div = document.getElementById('listaRedesAdmin');
+            const selectGeracao = document.getElementById('geracaoRedeId');
+            const selectCel = document.getElementById('newCelRede');
+
+            if (div) div.innerHTML = 'Carregando...';
+            try {
+                const res = await fetch(`${API_URL}/redes`);
+                const redes = await res.json();
+
+                // Popula Lista
+                if (div) {
+                    if (redes.length === 0) div.innerHTML = 'Nenhuma rede cadastrada.';
+                    else {
+                        div.innerHTML = redes.map(r => `
+                            <div class="list-item">
+                                <div><b>${r.nome}</b><br><span style="font-size:12px; color:#666;">Líder: ${r.lider_nome || '-'}</span></div>
+                            </div>
+                        `).join('');
+                    }
+                }
+
+                // Popula Selects
+                let opts = '<option value="">Selecione a Rede</option>';
+                redes.forEach(r => {
+                    opts += `<option value="${r.id}">${r.nome}</option>`;
+                });
+                if (selectGeracao) selectGeracao.innerHTML = opts;
+                if (selectCel) selectCel.innerHTML = '<option value="">Selecione a Rede (Opcional)</option>' + redes.map(r => `<option value="${r.id}">${r.nome}</option>`).join('');
+
+            } catch (e) {
+                console.error(e);
+                if (div) div.innerHTML = 'Erro ao carregar redes.';
+            }
+        }
+
+        async function carregarGeracoesAdmin() {
+            const div = document.getElementById('listaGeracoesAdmin');
+            if (div) div.innerHTML = 'Carregando...';
+            try {
+                const res = await fetch(`${API_URL}/geracoes`);
+                const geracoes = await res.json();
+
+                if (div) {
+                    if (geracoes.length === 0) div.innerHTML = 'Nenhuma geração cadastrada.';
+                    else {
+                        div.innerHTML = geracoes.map(g => `
+                            <div class="list-item">
+                                <div>
+                                    <b>${g.nome}</b>
+                                    <span class="badge" style="margin-left:5px;">${g.rede_nome || 'Sem Rede'}</span>
+                                    <br><span style="font-size:12px; color:#666;">Líder: ${g.lider_nome || '-'}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                if (div) div.innerHTML = 'Erro ao carregar gerações.';
+            }
+        }
+
+        // Carrega gerações em um select específico baseado na rede selecionada
+        async function carregarGeracoesSelect(targetId, redeId) {
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            target.innerHTML = '<option value="">Carregando...</option>';
+
+            let url = `${API_URL}/geracoes`;
+            if (redeId) url += `?rede_id=${redeId}`;
+
+            try {
+                const res = await fetch(url);
+                const geracoes = await res.json();
+
+                target.innerHTML = '<option value="">Selecione a Geração (Opcional)</option>';
+                geracoes.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g.id;
+                    opt.innerText = g.nome;
+                    target.appendChild(opt);
+                });
+            } catch (e) {
+                target.innerHTML = '<option value="">Erro ao carregar</option>';
+            }
+        }
+
+        async function criarRede() {
+            const nome = document.getElementById('redeNome').value;
+            const lider = document.getElementById('redeLider').value;
+            const tel = document.getElementById('redeLiderTel').value;
+
+            if (!nome) return alert("Informe o nome da Rede");
+
+            try {
+                const res = await fetch(`${API_URL}/redes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, lider_nome: lider, lider_telefone: tel })
+                });
+                if (res.ok) {
+                    alert('Rede criada!');
+                    document.getElementById('redeNome').value = '';
+                    carregarRedesAdmin();
+                } else alert('Erro ao criar rede');
+            } catch (e) { alert('Erro de conexão'); }
+        }
+
+        async function criarGeracao() {
+            const redeId = document.getElementById('geracaoRedeId').value;
+            const nome = document.getElementById('geracaoNome').value;
+            const lider = document.getElementById('geracaoLider').value;
+            const tel = document.getElementById('geracaoLiderTel').value;
+
+            if (!nome) return alert("Informe o nome da Geração");
+
+            try {
+                const res = await fetch(`${API_URL}/geracoes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, rede_id: redeId, lider_nome: lider, lider_telefone: tel })
+                });
+                if (res.ok) {
+                    alert('Geração criada!');
+                    document.getElementById('geracaoNome').value = '';
+                    carregarGeracoesAdmin();
+                } else alert('Erro ao criar geração');
+            } catch (e) { alert('Erro de conexão'); }
+        }
+
+        // --- CÉLULAS ---
+
+        async function criarCelula() {
+            const nome = document.getElementById('newCelNome').value;
+            const lider = document.getElementById('newCelLider').value;
+            const liderTreino = document.getElementById('newCelLiderTreinamento').value;
+
+            // Novos Campos
+            const redeId = document.getElementById('newCelRede').value;
+            const geracaoId = document.getElementById('newCelGeracao').value;
+
+            const cep = document.getElementById('newCelCep').value;
+            const end = document.getElementById('newCelEnd').value;
+            const num = document.getElementById('newCelNum').value;
+            const bairro = document.getElementById('newCelBairro').value;
+            const cidade = document.getElementById('newCelCidade').value;
+            const estado = document.getElementById('newCelEstado').value;
+
+            if (!nome || !lider) return alert("Nome e Líder são obrigatórios");
+
+            // Pega lat/lng do marker (se existir globalmente ou buscar do ID)
+            // Assumindo inputs hidden ou variáveis globais
+            // Como no original estava pegando de elementId newCelLat, manteremos ou adaptaremos se tiver marker
+
+            const lat = document.getElementById('newCelLat') ? document.getElementById('newCelLat').value : null;
+            const lng = document.getElementById('newCelLng') ? document.getElementById('newCelLng').value : null;
+
+            const payload = {
+                nome, lider, lider_treinamento: liderTreino,
+                rede_id: redeId || null,
+                geracao_id: geracaoId || null,
+                endereco: end, numero: num, bairro: bairro,
+                cidade, estado, cep,
+                latitude: lat,
+                longitude: lng
+            };
+
+            // Compatibilidade: Salva nome da rede como string se selecionada
+            if (redeId) {
+                const sel = document.getElementById('newCelRede');
+                if (sel && sel.selectedIndex >= 0) payload.rede = sel.options[sel.selectedIndex].text;
+            }
+
+            try {
+                const method = document.getElementById('editCelId').value ? 'PUT' : 'POST';
+                const id = document.getElementById('editCelId').value;
+                const url = id ? `${API_URL}/celulas/${id}` : `${API_URL}/celulas`;
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert(id ? 'Célula atualizada!' : 'Célula criada com sucesso!');
+                    limparFormCelula();
+                    // Se estiver editando, volta para lista. Se criando, volta para dashboard ou lista.
+                    // Vamos voltar para lista para facilitar
+                    showSection('listarCelulas');
+                } else {
+                    alert('Erro ao salvar célula');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erro de conexão');
+            }
+        }
+
+
+        function limparFormCelula() {
+            document.getElementById('editCelId').value = '';
+            document.getElementById('tituloNovaCelula').innerText = 'Cadastrar Nova Célula';
+            document.getElementById('newCelNome').value = '';
+            document.getElementById('newCelLider').value = '';
+            document.getElementById('newCelLiderTreinamento').value = '';
+            document.getElementById('newCelRede').value = '';
+            document.getElementById('newCelGeracao').value = '';
+            document.getElementById('newCelCep').value = '';
+            document.getElementById('newCelEnd').value = '';
+            document.getElementById('newCelNum').value = '';
+            document.getElementById('newCelBairro').value = '';
+            document.getElementById('newCelCidade').value = '';
+            document.getElementById('newCelEstado').value = '';
+            // Resetar selects se necessario
+        }
+
+
+
+        async function carregarCelulas() {
+            const div = document.getElementById('listaCelulas');
+            div.innerHTML = 'Carregando...';
+            try {
+                const res = await fetch(`${API_URL}/celulas`);
+                const data = await res.json();
+
+                if (data.length === 0) {
+                    div.innerHTML = 'Nenhuma célula.';
+                    return;
+                }
+
+                let html = '';
+                data.forEach(c => {
+                    html += `
+                    <div class="list-item">
+                        <div>
+                            <b>${c.nome}</b>
+                            ${c.rede ? `<span class="badge" style="margin-left:5px;">${c.rede}</span>` : ''}
+                            ${c.geracao ? `<span class="badge" style="background:#f3e5f5; color:#7b1fa2; margin-left:2px;">${c.geracao}</span>` : ''}
+                            <br>
+                            <span style="font-size:12px; color:#666;">Líder: ${c.lider || '-'}</span>
+                            <div style="margin-top:5px;">
+                                <button class="btn" style="padding:2px 8px; font-size:12px; background:#ffeb3b; color:#333;" onclick='editarCelula(${JSON.stringify(c)})'>Editar</button>
+                                <button class="btn" style="padding:2px 8px; font-size:12px; background:#f44336; color:white; margin-left:5px;" onclick="excluirCelula(${c.id})">Excluir</button>
+                            </div>
+                        </div>
+                        <span class="badge">${c.membros ? c.membros.length : 0} membros</span>
+                    </div>
+                    `;
+                });
+                div.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                div.innerHTML = 'Erro ao carregar';
+            }
+        }
+
+        async function excluirCelula(id) {
+            if (!confirm("Tem certeza que deseja excluir esta célula?")) return;
+            try {
+                const res = await fetch(`${API_URL}/celulas/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Célula removida.');
+                    carregarCelulas();
+                } else alert('Erro ao remover.');
+            } catch (e) { alert('Erro de conexão'); }
+        }
+
+        function editarCelula(c) {
+            document.getElementById('editCelId').value = c.id;
+            document.getElementById('tituloNovaCelula').innerText = 'Editar Célula: ' + c.nome;
+
+            document.getElementById('newCelNome').value = c.nome;
+            document.getElementById('newCelLider').value = c.lider;
+            document.getElementById('newCelLiderTreinamento').value = c.lider_treinamento || '';
+
+            // Popula endereço
+            document.getElementById('newCelCep').value = c.cep || '';
+            document.getElementById('newCelEnd').value = c.endereco || '';
+            document.getElementById('newCelNum').value = c.numero || '';
+            document.getElementById('newCelBairro').value = c.bairro || '';
+            document.getElementById('newCelCidade').value = c.cidade || '';
+            document.getElementById('newCelEstado').value = c.estado || '';
+
+            // Tenta selecionar Rede/Geração (pode precisar de delay se não tiver carregado)
+            // Ideal seria carregar as redes, depois selecionar
+            carregarRedesAdmin().then(() => {
+                const selRede = document.getElementById('newCelRede');
+                if (c.rede_id) selRede.value = c.rede_id;
+
+                // Carrega gerações da rede
+                carregarGeracoesSelect('newCelGeracao', c.rede_id).then(() => {
+                    const selGer = document.getElementById('newCelGeracao');
+                    if (c.geracao_id) selGer.value = c.geracao_id;
+                });
+            });
+
+            showSection('novaCelula');
+        }
+
+        async function carregarUsuariosAdmin() {
+            const div = document.getElementById('listaUsuariosAdmin');
+            const term = document.getElementById('searchUser').value.toLowerCase();
+
+            div.innerHTML = 'Carregando...';
+            try {
+                const res = await fetch(`${API_URL}/membros`);
+                let data = await res.json();
+
+                // Filter
+                if (term) {
+                    data = data.filter(u => u.nome.toLowerCase().includes(term) || (u.email && u.email.toLowerCase().includes(term)));
+                }
+
+                if (data.length === 0) {
+                    div.innerHTML = 'Nenhum usuário encontrado.';
+                    return;
+                }
+
+                let html = '<table style="width:100%; border-collapse:collapse; font-size:14px;">';
+                html += '<tr style="background:#eee; text-align:left;"><th>ID</th><th>Nome</th><th>Tipo</th><th>Ação</th></tr>';
+
+                data.forEach(u => {
+                    html += `
+                    <tr style="border-bottom:1px solid #eee;">
+                        <td style="padding:8px;">${u.id}</td>
+                        <td style="padding:8px;">
+                            <b>${u.nome}</b><br>
+                            <small>${u.email || ''}</small>
+                        </td>
+                        <td style="padding:8px;">${u.tipo}</td>
+                        <td style="padding:8px;">
+                            <button class="btn" style="background:#f44336; padding:5px 10px; font-size:12px;" onclick="excluirUsuario(${u.id}, '${u.nome}')">Excluir</button>
+                        </td>
+                    </tr>
+                    `;
+                });
+                html += '</table>';
+                div.innerHTML = html;
+            } catch (e) {
+                console.error(e);
+                div.innerHTML = 'Erro ao carregar usuários.';
+            }
+        }
+
+        async function excluirUsuario(id, nome) {
+            if (!confirm(`Tem certeza que deseja EXCLUIR DEFINITIVAMENTE o usuário ${nome}?`)) return;
+
+            try {
+                const res = await fetch(`${API_URL}/membros/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Usuário excluído com sucesso!');
+                    carregarUsuariosAdmin();
+                } else {
+                    const err = await res.json();
+                    alert('Erro ao excluir: ' + (err.erro || 'Desconhecido'));
+                }
+            } catch (e) { alert('Erro de conexão'); }
+        }
+        async function carregarSemCelula() {
+            const div = document.getElementById('listaSemCelula');
+            try {
+                const res = await fetch(`${API_URL}/membros/sem-celula`);
+                const data = await res.json();
+
+                if (data.length === 0) {
+                    div.innerHTML = 'Todos os membros têm célula!';
+                    return;
+                }
+
+                let html = '';
+                data.forEach(m => {
+                    html += `
+                    <div class="list-item">
+                        <div>
+                            <b>${m.nome}</b><br>
+                            <small>${m.email}</small>
+                        </div>
+                        <button onclick="atribuirCelula(${m.id}, '${m.nome}')" style="padding:5px;">Atribuir</button>
+                    </div>
+                `;
+                });
+                div.innerHTML = html;
+            } catch (e) { div.innerHTML = 'Erro'; }
+        }
+
+        let celulasCache = [];
+
+        async function atribuirCelula(id, nome) {
+            document.getElementById('idMembroAtribuir').value = id;
+            document.getElementById('nomeMembroAtribuir').innerText = `Membro: ${nome}`;
+
+            // Show modal
+            const modal = document.getElementById('modalAtribuir');
+            modal.style.display = 'flex';
+
+            const select = document.getElementById('selectCelulaAtribuir');
+            select.innerHTML = '<option>Carregando...</option>';
+
+            try {
+                // Fetch celulas if not cached (or always fetch to be fresh)
+                const res = await fetch(`${API_URL}/celulas`);
+                const celulas = await res.json();
+                celulasCache = celulas;
+
+                let opts = '<option value="">Selecione uma Célula</option>';
+                celulas.forEach(c => {
+                    opts += `<option value="${c.id}">${c.nome} (Sua rede: ${c.rede || 'N/A'})</option>`;
+                });
+                select.innerHTML = opts;
+            } catch (e) {
+                select.innerHTML = '<option>Erro ao carregar</option>';
+            }
+        }
+
+        async function salvarAtribuicao() {
+            const membroId = document.getElementById('idMembroAtribuir').value;
+            const celulaId = document.getElementById('selectCelulaAtribuir').value;
+
+            if (!celulaId) return alert("Selecione uma célula");
+
+            try {
+                const res = await fetch(`${API_URL}/membros/${membroId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ celula_id: celulaId })
+                });
+
+                if (res.ok) {
+                    alert("Célula atribuída com sucesso!");
+                    document.getElementById('modalAtribuir').style.display = 'none';
+                    carregarSemCelula(); // Refresh list
+                } else {
+                    alert("Erro ao atribuir.");
+                }
+            } catch (e) { alert("Erro de conexão"); }
+        }
+
+
+
+        // --- FUNCIONALIDADES NOVAS ---
+
+        // UPLOAD HELPER
+        async function uploadImagem(fileInputId) {
+            const input = document.getElementById(fileInputId);
+            if (!input.files || !input.files[0]) return null;
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const res = await fetch(`${API_URL}/upload`, { method: 'POST', body: formData });
+                if (res.ok) {
+                    const data = await res.json();
+                    return data.url;
+                }
+            } catch (e) { console.error("Erro upload", e); }
+            return null;
+        }
+
+        // STORY
+        async function postarStory() {
+            const fotoUrl = await uploadImagem('storyFile');
+            if (!fotoUrl) return alert("Selecione uma imagem para o Story!");
+
+            const legenda = document.getElementById('storyLegenda').value;
+
+            try {
+                const res = await fetch(`${API_URL}/stories`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ foto_url: fotoUrl, legenda })
+                });
+                if (res.ok) {
+                    alert('Story publicado!');
+                    hideSections();
+                } else alert('Erro ao publicar');
+            } catch (e) { alert('Erro conexão'); }
+        }
+
+        // EVENTO
+        async function criarEvento() {
+            const titulo = document.getElementById('evtTitulo').value;
+            const desc = document.getElementById('evtDescricao').value;
+            const data = document.getElementById('evtData').value;
+            const local = document.getElementById('evtLocal').value;
+            const fileInput = document.getElementById('evtFile');
+
+            // Edit Check
+            const editId = document.getElementById('evtEditId') ? document.getElementById('evtEditId').value : null;
+
+            if (!titulo || !data) return alert("Título e Data são obrigatórios");
+
+            let fotoUrl = null;
+
+            // Upload
+            if (fileInput.files.length > 0) {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+
+                try {
+                    const resUpload = await fetch(`${API_URL}/upload`, { method: 'POST', body: formData });
+                    if (resUpload.ok) {
+                        const dataUpload = await resUpload.json();
+                        fotoUrl = dataUpload.url;
+                    } else return alert("Erro no upload da imagem");
+                } catch (e) { return alert("Erro ao fazer upload da imagem"); }
+            }
+
+            // Payload
+            const payload = {
+                titulo, descricao: desc, data_evento: data, local
+            };
+            if (fotoUrl) payload.foto_url = fotoUrl;
+
+            try {
+                const method = editId ? 'PUT' : 'POST';
+                const url = editId ? `${API_URL}/eventos/${editId}` : `${API_URL}/eventos`;
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    alert(editId ? 'Evento atualizado!' : 'Evento criado!');
+                    if (!editId) resetEventoForm();
+                    else showSection('gerenciarEventos');
+                } else alert('Erro ao salvar');
+            } catch (e) { alert('Erro conexão'); }
+        }
+
+        // --- GERENCIAR EVENTOS E STORIES ---
+
+        function resetEventoForm() {
+            if (document.getElementById('evtFormTitle')) document.getElementById('evtFormTitle').innerText = "Novo Evento";
+            if (document.getElementById('evtEditId')) document.getElementById('evtEditId').value = "";
+            document.getElementById('evtTitulo').value = "";
+            document.getElementById('evtDescricao').value = "";
+            document.getElementById('evtData').value = "";
+            document.getElementById('evtLocal').value = "";
+            document.getElementById('evtFile').value = "";
+            if (document.getElementById('evtPreview')) document.getElementById('evtPreview').innerHTML = "";
+        }
+
+        async function carregarEventosAdmin() {
+            const div = document.getElementById('listaEventosAdmin');
+            if (!div) return;
+            div.innerHTML = 'Carregando...';
+            try {
+                const res = await fetch(`${API_URL}/eventos`);
+                const eventos = await res.json();
+
+                if (eventos.length === 0) { div.innerHTML = "Nenhum evento."; return; }
+
+                div.innerHTML = eventos.map(e => `
+                    <div class="list-item" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <b>${e.titulo}</b><br>
+                            <span style="font-size:12px; color:#666;">${e.data_evento || 'Sem data'}</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-secondary" onclick="editarEvento(${e.id})" style="padding:5px 10px; font-size:12px;">Editar</button>
+                            <button class="btn" style="background:#d32f2f; padding:5px 10px; font-size:12px;" onclick="excluirEvento(${e.id})">Excluir</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) { div.innerHTML = "Erro ao carregar."; }
+        }
+
+        async function editarEvento(id) {
+            try {
+                const res = await fetch(`${API_URL}/eventos/${id}`);
+                if (!res.ok) throw new Error("Erro");
+                const evt = await res.json();
+
+                resetEventoForm();
+                document.getElementById('evtFormTitle').innerText = "Editar Evento";
+                document.getElementById('evtEditId').value = evt.id;
+                document.getElementById('evtTitulo').value = evt.titulo;
+                document.getElementById('evtDescricao').value = evt.descricao || "";
+                if (evt.data_evento) document.getElementById('evtData').value = evt.data_evento.slice(0, 16);
+                document.getElementById('evtLocal').value = evt.local || "";
+
+                if (evt.foto_url) {
+                    document.getElementById('evtPreview').innerHTML = `<img src="${API_URL.replace('/api', '') + evt.foto_url}" style="height:50px;">`;
+                }
+                showSection('criarEvento');
+            } catch (e) { alert("Erro ao carregar evento"); }
+        }
+
+        async function excluirEvento(id) {
+            if (!confirm("Excluir este evento?")) return;
+            try {
+                const res = await fetch(`${API_URL}/eventos/${id}`, { method: 'DELETE' });
+                if (res.ok) carregarEventosAdmin();
+                else alert("Erro ao excluir.");
+            } catch (e) { alert("Erro conexão"); }
+        }
+
+        async function carregarStoriesAdmin() {
+            const div = document.getElementById('listaStoriesAdmin');
+            if (!div) return;
+            div.innerHTML = 'Carregando...';
+            try {
+                const res = await fetch(`${API_URL}/stories`);
+                const stories = await res.json();
+
+                if (stories.length === 0) { div.innerHTML = "Nenhum story ativo."; return; }
+
+                div.innerHTML = stories.map(s => `
+                    <div class="list-item" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <img src="${API_URL.replace('/api', '') + s.foto_url}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;">
+                            <div><small>${s.criado_em}</small><br><i>${s.legenda || ''}</i></div>
+                        </div>
+                        <button class="btn" style="background:#d32f2f; padding:5px 10px; font-size:12px;" onclick="excluirStory(${s.id})">Excluir</button>
+                    </div>
+                `).join('');
+            } catch (e) { div.innerHTML = "Erro ao carregar."; }
+        }
+
+        async function excluirStory(id) {
+            if (!confirm("Excluir story?")) return;
+            try {
+                const res = await fetch(`${API_URL}/stories/${id}`, { method: 'DELETE' });
+                if (res.ok) carregarStoriesAdmin();
+                else alert("Erro ao excluir");
+            } catch (e) { alert("Erro conexão"); }
+        }
+
+        // ESCOLAS
+        async function carregarEscolasAdmin() {
+            const div = document.getElementById('listaEscolasAdmin');
+            div.innerHTML = 'Carregando...';
+            try {
+                const res = await fetch(`${API_URL}/escolas`);
+                const data = await res.json();
+
+                if (data.length === 0) { div.innerHTML = 'Nenhuma escola encontrada.'; return; }
+
+                let html = '';
+                data.forEach(e => {
+                    html += `
+                        <div class="list-item">
+                            <div><b>${e.nome}</b></div>
+                            <span class="badge">Ativa</span>
+                        </div>`;
+                });
+                div.innerHTML = html;
+            } catch (e) { div.innerHTML = "Erro ao carregar"; }
+        }
+
+        // CEP
+        async function buscarCep(prefix) {
+            let cep = document.getElementById(prefix + 'Cep').value.replace(/\D/g, '');
+
+            // Aceitar 8 dígitos
+            if (cep.length !== 8) {
+                // Se o usuário digitou algo mas não deu 8, avisa. Se vazio, ignora.
+                if (cep.length > 0) alert("CEP deve ter 8 dígitos.");
+                return;
+            }
+
+            // Feedback visual
+            document.getElementById(prefix + 'End').value = 'Buscando...';
+
+            try {
+                const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await res.json();
+
+                if (!data.erro) {
+                    // Trata CEP genérico (logradouro vazio)
+                    document.getElementById(prefix + 'End').value = data.logradouro || "";
+                    document.getElementById(prefix + 'Bairro').value = data.bairro || "";
+                    document.getElementById(prefix + 'Cidade').value = data.localidade;
+                    document.getElementById(prefix + 'Estado').value = data.uf;
+
+                    if (!data.logradouro) {
+                        alert("CEP Genérico encontrado!\nA cidade e estado foram preenchidos, mas você precisa informar a Rua.");
+                        document.getElementById(prefix + 'End').focus();
+                    } else {
+                        document.getElementById(prefix + 'Num').focus();
+                    }
+                } else {
+                    document.getElementById(prefix + 'End').value = '';
+                    alert('CEP não encontrado!');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao buscar CEP');
+                document.getElementById(prefix + 'End').value = '';
+            }
+        }
+
+    </script>
+
+    <!-- MODAL ATRIBUIÇÃO -->
+    <div id="modalAtribuir"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+        <div class="card" style="width:90%; max-width:400px;">
+            <h3>Atribuir Célula</h3>
+            <p id="nomeMembroAtribuir" style="margin-bottom:15px; font-weight:bold;"></p>
+            <input type="hidden" id="idMembroAtribuir">
+
+            <select id="selectCelulaAtribuir" style="margin-bottom:15px;">
+                <option value="">Carregando células...</option>
+            </select>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="salvarAtribuicao()">Salvar</button>
+                <button class="btn btn-secondary"
+                    onclick="document.getElementById('modalAtribuir').style.display='none'">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
