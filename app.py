@@ -35,6 +35,14 @@ def serve_imagens(filename):
 def serve_client():
     return send_from_directory(os.getcwd(), 'client.html')
 
+@app.route('/manifest.json')
+def serve_manifest():
+    return send_from_directory(os.getcwd(), 'manifest.json')
+
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory(os.getcwd(), 'sw.js')
+
 @app.route('/admin')
 def serve_admin():
     return send_from_directory(os.getcwd(), 'admin.html')
