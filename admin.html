@@ -6,7 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Células Rede Agape - Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
+        #adminMap {
+            height: 300px;
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
         :root {
             --primary: #333;
             /* Darker theme for Admin */
@@ -300,12 +316,18 @@
             </div>
 
             <h3>Localização (Mapa)</h3>
+            <div class="search-row">
+                <button class="btn" style="background:var(--secondary);" onclick="buscarCoordenadas()">📍 Buscar
+                    Coordenadas do Endereço</button>
+            </div>
+            <div id="adminMap"></div>
+
             <div style="display:flex; gap:10px;">
                 <input type="text" id="newCelLat" placeholder="Latitude (ex: -2.55)">
                 <input type="text" id="newCelLng" placeholder="Longitude (ex: -44.12)">
             </div>
-            <small style="color:#666; display:block; margin-bottom:10px;">Use o Google Maps para pegar a Lat/Long
-                exata se necessário.</small>
+            <small style="color:#666; display:block; margin-bottom:10px;">Você pode clicar/arrastar no mapa para ajustar
+                a posição.</small>
 
             <button class="btn" onclick="criarCelula()">Salvar Célula</button>
             <button class="btn btn-secondary" style="margin-top:10px;"
@@ -413,9 +435,76 @@
         </div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const IS_FILE = window.location.protocol === 'file:';
         const API_URL = 'https://iba-celulas-agape.onrender.com/api';
+
+        // --- ADMIN MAP PICKER LOGIC ---
+        let adminMap = null;
+        let adminMarker = null;
+
+        function initAdminMap() {
+            if (!adminMap) {
+                // Posicionamento inicial (São Luís/MA ou aproximado)
+                adminMap = L.map('adminMap').setView([-2.5307, -44.3068], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(adminMap);
+
+                adminMap.on('click', function (e) {
+                    updateAdminMarker(e.latlng.lat, e.latlng.lng);
+                });
+            }
+            // Delay para garantir visibilidade do container
+            setTimeout(() => {
+                adminMap.invalidateSize();
+            }, 100);
+        }
+
+        function updateAdminMarker(lat, lng) {
+            if (!lat || !lng) return;
+            if (!adminMarker) {
+                adminMarker = L.marker([lat, lng], { draggable: true }).addTo(adminMap);
+                adminMarker.on('dragend', function (e) {
+                    const pos = e.target.getLatLng();
+                    document.getElementById('newCelLat').value = pos.lat.toFixed(6);
+                    document.getElementById('newCelLng').value = pos.lng.toFixed(6);
+                });
+            } else {
+                adminMarker.setLatLng([lat, lng]);
+            }
+            adminMap.panTo([lat, lng]);
+            document.getElementById('newCelLat').value = lat.toFixed(6);
+            document.getElementById('newCelLng').value = lng.toFixed(6);
+        }
+
+        async function buscarCoordenadas() {
+            const cep = document.getElementById('newCelCep').value;
+            const end = document.getElementById('newCelEnd').value;
+            const cidade = document.getElementById('newCelCidade').value;
+
+            if (!end && !cep) return alert("Digite o endereço ou CEP primeiro");
+
+            let query = "";
+            if (cep) query = cep;
+            else query = `${end}, ${cidade}, Brasil`;
+
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                if (data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    updateAdminMarker(lat, lon);
+                } else {
+                    alert("Endereço não encontrado. Tente clicar manualmente no mapa.");
+                }
+            } catch (e) {
+                alert("Erro ao buscar coordenadas");
+            }
+        }
 
         // -- AUTH --
         function loginAdmin() {
@@ -464,9 +553,10 @@
             if (id === 'gerenciarEscolas') carregarEscolasAdmin();
             if (id === 'criarRede') carregarRedesAdmin();
             if (id === 'criarGeracao') { carregarGeracoesAdmin(); carregarRedesAdmin(); } // Carrega redes para o select
-            if (id === 'criarRede') carregarRedesAdmin();
-            if (id === 'criarGeracao') { carregarGeracoesAdmin(); carregarRedesAdmin(); } // Carrega redes para o select
-            if (id === 'novaCelula') carregarRedesAdmin(); // Carrega redes para cadastro de célula
+            if (id === 'novaCelula') {
+                carregarRedesAdmin();
+                initAdminMap();
+            }
             if (id === 'gerenciarUsuarios') carregarUsuariosAdmin();
         }
 
@@ -695,7 +785,12 @@
             document.getElementById('newCelBairro').value = '';
             document.getElementById('newCelCidade').value = '';
             document.getElementById('newCelEstado').value = '';
-            // Resetar selects se necessario
+            document.getElementById('newCelLat').value = '';
+            document.getElementById('newCelLng').value = '';
+            if (adminMarker) {
+                adminMap.removeLayer(adminMarker);
+                adminMarker = null;
+            }
         }
 
 
@@ -764,6 +859,18 @@
             document.getElementById('newCelBairro').value = c.bairro || '';
             document.getElementById('newCelCidade').value = c.cidade || '';
             document.getElementById('newCelEstado').value = c.estado || '';
+
+            // Popula Coordenadas no Mapa
+            document.getElementById('newCelLat').value = c.latitude || '';
+            document.getElementById('newCelLng').value = c.longitude || '';
+
+            initAdminMap();
+            if (c.latitude && c.longitude) {
+                updateAdminMarker(parseFloat(c.latitude), parseFloat(c.longitude));
+            } else if (adminMarker) {
+                adminMap.removeLayer(adminMarker);
+                adminMarker = null;
+            }
 
             // Tenta selecionar Rede/Geração (pode precisar de delay se não tiver carregado)
             // Ideal seria carregar as redes, depois selecionar
