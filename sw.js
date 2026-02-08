@@ -3,7 +3,7 @@ const ASSETS = [
     '/',
     '/api/celulas',
     '/static/css/styles.css',
-    '/imagens/app_icon.png'
+    '/app_icon.png'
 ];
 
 self.addEventListener('install', event => {

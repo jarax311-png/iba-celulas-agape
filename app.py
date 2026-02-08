@@ -43,6 +43,10 @@ def serve_manifest():
 def serve_sw():
     return send_from_directory(os.getcwd(), 'sw.js')
 
+@app.route('/app_icon.png')
+def serve_app_icon():
+    return send_from_directory(os.getcwd(), 'app_icon.png')
+
 @app.route('/admin')
 def serve_admin():
     return send_from_directory(os.getcwd(), 'admin.html')
