@@ -1678,7 +1678,7 @@
             };
 
             try {
-                const res = await fetch(`${API_URL}/membros`, { // Antigo endpoint, manter por enquanto ou mudar para /register
+                const res = await fetch(`${API_URL}/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)

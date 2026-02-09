@@ -750,10 +750,25 @@ def handle_membros():
             tipo_usuario = 'Lider'
         elif codigo == 'REDE12':
             tipo_usuario = 'LiderRede'
+        elif codigo == 'GERACAO12':
+            tipo_usuario = 'LiderGeracao'
+        elif codigo == 'ADMIN12':
+            tipo_usuario = 'Admin'
         
+        # Tratamento de Rede e Geração
+        rede_id = None
+        if data.get('rede_id') and str(data.get('rede_id')).isdigit():
+            rede_id = int(data['rede_id'])
+            
+        geracao_id = None
+        if data.get('geracao_id') and str(data.get('geracao_id')).isdigit():
+            geracao_id = int(data['geracao_id'])
+
         novo = Membro(
             nome=data['nome'], 
-            celula_id=data['celula_id'],
+            celula_id=data.get('celula_id'), # Use .get() to avoid error if missing
+            rede_id=rede_id,
+            geracao_id=geracao_id,
             telefone=data.get('telefone'),
             data_nascimento=dt_nasc,
             endereco=data.get('endereco'),
