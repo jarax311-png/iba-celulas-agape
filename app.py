@@ -15,10 +15,22 @@ UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
+    os.makedirs(UPLOAD_FOLDER)
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///igreja.db'
+
+# Database Config - Supports SQLite (local) and PostgreSQL (production)
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///igreja.db')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+# Auto-create tables if they don't exist (Production Friendly)
+with app.app_context():
+    db.create_all()
 
 # Rota para servir imagens de upload
 @app.route('/uploads/<filename>')
