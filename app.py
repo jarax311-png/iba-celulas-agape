@@ -15,7 +15,7 @@ UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-    os.makedirs(UPLOAD_FOLDER)
+
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
