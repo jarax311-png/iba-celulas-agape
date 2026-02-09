@@ -1,6 +1,6 @@
 Flask
 Flask-SQLAlchemy
 Flask-CORS
-gunicorn==20.1.0
+gunicorn
 psycopg2-binary==2.9.9
 setuptools
